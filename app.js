@@ -49,6 +49,7 @@ const state = {
   veiculos: [],
   veiculosById: new Map(),
   feedItens: [],
+  feedSalvos: [],
   feedFiltroVeiculo: "",
   feedSoSalvos: false,
 };
@@ -89,15 +90,6 @@ function loadFeedSalvos() {
 
 function saveFeedSalvos(ids) {
   localStorage.setItem(FEED_SALVOS_KEY, JSON.stringify(ids));
-}
-
-function toggleFeedSalvo(id) {
-  const salvos = loadFeedSalvos();
-  const idx = salvos.indexOf(id);
-  if (idx === -1) salvos.push(id);
-  else salvos.splice(idx, 1);
-  saveFeedSalvos(salvos);
-  render();
 }
 
 // --- utils ---
@@ -174,22 +166,40 @@ function toggleTheme() {
 
 // --- triagem ---
 
-function setStatus(id, status) {
-  const overlay = loadStatusOverlay();
+async function setStatus(id, status) {
   const evento = state.eventos.find((e) => e.id === id);
   const current = evento ? evento.status : "novo";
   const next = current === status ? "novo" : status;
 
-  if (next === "novo") delete overlay[id];
-  else overlay[id] = next;
-  saveStatusOverlay(overlay);
+  if (API.isGithubConfigured()) {
+    try {
+      await API.saveEventoStatus(id, next);
+    } catch (err) {
+      alert(err.message);
+      return;
+    }
+  } else {
+    const overlay = loadStatusOverlay();
+    if (next === "novo") delete overlay[id];
+    else overlay[id] = next;
+    saveStatusOverlay(overlay);
+  }
 
   if (evento) evento.status = next;
   render();
 }
 
-function removeManualEvento(id) {
-  saveManualEventos(loadManualEventos().filter((e) => e.id !== id));
+async function removeManualEvento(id) {
+  if (API.isGithubConfigured()) {
+    try {
+      await API.removeEventoGithub(id);
+    } catch (err) {
+      alert(err.message);
+      return;
+    }
+  } else {
+    saveManualEventos(loadManualEventos().filter((e) => e.id !== id));
+  }
   state.eventos = state.eventos.filter((e) => e.id !== id);
   render();
 }
@@ -417,12 +427,32 @@ function renderCalendario(container, eventos) {
 
 // --- rendering: feed ---
 
-function getFilteredFeedItens(salvosSet) {
-  return state.feedItens.filter((item) => {
-    if (state.feedFiltroVeiculo && item.veiculo_id !== state.feedFiltroVeiculo) return false;
-    if (state.feedSoSalvos && !salvosSet.has(item.id)) return false;
-    return true;
-  });
+async function toggleFeedSalvo(item) {
+  const isSalvo = state.feedSalvos.some((i) => i.id === item.id);
+
+  if (API.isGithubConfigured()) {
+    try {
+      state.feedSalvos = isSalvo
+        ? await API.removeFeedItemGithub(item.id)
+        : await API.saveFeedItemGithub(item);
+    } catch (err) {
+      alert(err.message);
+      return;
+    }
+  } else {
+    const salvos = loadFeedSalvos();
+    const idx = salvos.indexOf(item.id);
+    if (idx === -1) salvos.push(item.id);
+    else salvos.splice(idx, 1);
+    saveFeedSalvos(salvos);
+    state.feedSalvos = state.feedItens.filter((it) => salvos.includes(it.id));
+  }
+
+  render();
+}
+
+function filterFeedItens(items) {
+  return items.filter((item) => !state.feedFiltroVeiculo || item.veiculo_id === state.feedFiltroVeiculo);
 }
 
 function feedItemHtml(item, salvosSet) {
@@ -447,8 +477,9 @@ function feedItemHtml(item, salvosSet) {
 }
 
 function renderFeed(container) {
-  const salvosSet = new Set(loadFeedSalvos());
-  const filtered = [...getFilteredFeedItens(salvosSet)].sort((a, b) => b.publicado_em.localeCompare(a.publicado_em));
+  const salvosSet = new Set(state.feedSalvos.map((i) => i.id));
+  const source = state.feedSoSalvos ? state.feedSalvos : state.feedItens;
+  const filtered = filterFeedItens(source).sort((a, b) => b.publicado_em.localeCompare(a.publicado_em));
 
   const veiculosFeed = state.veiculos.filter((v) => v.tipo_coleta === "feed");
   const veiculosManuais = state.veiculos.filter((v) => v.tipo_coleta !== "feed");
@@ -499,7 +530,11 @@ function renderFeed(container) {
     render();
   });
   container.querySelectorAll(".triagem-btn[data-feed-id]").forEach((btn) => {
-    btn.addEventListener("click", () => toggleFeedSalvo(btn.dataset.feedId));
+    btn.addEventListener("click", () => {
+      const id = btn.dataset.feedId;
+      const item = state.feedItens.find((i) => i.id === id) || state.feedSalvos.find((i) => i.id === id);
+      if (item) toggleFeedSalvo(item);
+    });
   });
 }
 
@@ -597,7 +632,7 @@ function setupForm() {
     panel.hidden = true;
   });
 
-  panel.addEventListener("submit", (e) => {
+  panel.addEventListener("submit", async (e) => {
     e.preventDefault();
 
     const fonteId = formFonte.value;
@@ -627,9 +662,18 @@ function setupForm() {
       criado_em: new Date().toISOString(),
     };
 
-    const manuais = loadManualEventos();
-    manuais.push(novoEvento);
-    saveManualEventos(manuais);
+    if (API.isGithubConfigured()) {
+      try {
+        await API.addManualEventoGithub(novoEvento);
+      } catch (err) {
+        alert(err.message);
+        return;
+      }
+    } else {
+      const manuais = loadManualEventos();
+      manuais.push(novoEvento);
+      saveManualEventos(manuais);
+    }
     state.eventos.push(novoEvento);
 
     panel.reset();
@@ -638,21 +682,70 @@ function setupForm() {
   });
 }
 
+// --- sincronização com GitHub ---
+
+function updateGithubConfigButton() {
+  const btn = document.getElementById("github-config-btn");
+  const configured = API.isGithubConfigured();
+  btn.classList.toggle("is-active", configured);
+  btn.title = configured
+    ? "Sincronização com GitHub ativada — clique pra trocar ou remover o token"
+    : "Configurar token do GitHub pra sincronizar entre navegadores";
+}
+
+async function loadEventosState() {
+  if (API.isGithubConfigured()) {
+    state.eventos = await API.loadEventosGithub();
+    return;
+  }
+  const eventosBase = await API.loadEventos();
+  const manuais = loadManualEventos();
+  const statusOverlay = loadStatusOverlay();
+  state.eventos = [...eventosBase, ...manuais].map((e) => ({
+    ...e,
+    status: statusOverlay[e.id] || e.status || "novo",
+  }));
+}
+
+async function loadFeedSalvosState() {
+  if (API.isGithubConfigured()) {
+    state.feedSalvos = await API.loadFeedSalvosGithub();
+    return;
+  }
+  const savedIds = loadFeedSalvos();
+  state.feedSalvos = state.feedItens.filter((item) => savedIds.includes(item.id));
+}
+
+async function handleGithubConfig() {
+  const token = window.prompt(
+    'Cole seu Personal Access Token do GitHub (permissão de leitura/escrita de conteúdo no repositório "agenda"). Deixe em branco e confirme pra remover a sincronização deste navegador.'
+  );
+  if (token === null) return;
+
+  API.configureGithubToken(token.trim());
+  updateGithubConfigButton();
+
+  try {
+    await loadEventosState();
+    await loadFeedSalvosState();
+  } catch (err) {
+    alert(err.message);
+  }
+  render();
+}
+
 async function init() {
   updateThemeToggleButton();
   document.getElementById("theme-toggle").addEventListener("click", toggleTheme);
+  document.getElementById("github-config-btn").addEventListener("click", handleGithubConfig);
+  updateGithubConfigButton();
 
   try {
-    const [fontes, eventosBase] = await Promise.all([API.loadFontes(), API.loadEventos()]);
+    const fontes = await API.loadFontes();
     state.fontes = fontes;
     fontes.forEach((f) => state.fontesById.set(f.id, f));
 
-    const manuais = loadManualEventos();
-    const statusOverlay = loadStatusOverlay();
-    state.eventos = [...eventosBase, ...manuais].map((e) => ({
-      ...e,
-      status: statusOverlay[e.id] || e.status || "novo",
-    }));
+    await loadEventosState();
 
     const now = new Date();
     state.calendar.year = now.getFullYear();
@@ -672,6 +765,7 @@ async function init() {
     state.veiculos = veiculos;
     veiculos.forEach((v) => state.veiculosById.set(v.id, v));
     state.feedItens = feedItens;
+    await loadFeedSalvosState();
   } catch (err) {
     console.error("[agenda] falha ao carregar o feed:", err.message);
   }

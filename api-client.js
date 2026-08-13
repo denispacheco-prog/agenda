@@ -1,5 +1,76 @@
-// Marco 1: leitura local dos JSONs versionados. A gravação via GitHub
-// Contents API (status de triagem, novos eventos) fica para um marco seguinte.
+// Leitura: sempre dos JSONs estáticos publicados (funciona sem token).
+// Gravação (triagem, eventos manuais, salvos do feed): via GitHub Contents
+// API, exige um Personal Access Token configurado neste navegador. Sem
+// token, a gravação cai para o armazenamento local (ver app.js).
+
+const GITHUB_OWNER = "denispacheco-prog";
+const GITHUB_REPO = "agenda";
+const GITHUB_BRANCH = "main";
+const EVENTOS_PATH = "eventos.json";
+const FEED_SALVOS_PATH = "feed-salvos.json";
+const TOKEN_STORAGE_KEY = "agenda:githubToken";
+
+function utf8ToBase64(str) {
+  return btoa(unescape(encodeURIComponent(str)));
+}
+
+function base64ToUtf8(b64) {
+  return decodeURIComponent(escape(atob(b64)));
+}
+
+function getToken() {
+  return localStorage.getItem(TOKEN_STORAGE_KEY) || "";
+}
+
+function setToken(token) {
+  if (token) localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  else localStorage.removeItem(TOKEN_STORAGE_KEY);
+}
+
+async function ghGetFile(path) {
+  const token = getToken();
+  const res = await fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`,
+    { headers: { Authorization: `Bearer ${token}`, Accept: "application/vnd.github+json" } }
+  );
+  if (res.status === 404) return { data: null, sha: null };
+  if (!res.ok) {
+    if (res.status === 401) {
+      throw new Error('Token do GitHub inválido ou sem permissão. Reconfigure em "🔑 GitHub".');
+    }
+    throw new Error(`Falha ao ler ${path} do GitHub (status ${res.status})`);
+  }
+  const json = await res.json();
+  return { data: JSON.parse(base64ToUtf8(json.content)), sha: json.sha };
+}
+
+async function ghPutFile(path, data, sha, message) {
+  const token = getToken();
+  const res = await fetch(
+    `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        message,
+        content: utf8ToBase64(JSON.stringify(data, null, 2) + "\n"),
+        sha: sha || undefined,
+        branch: GITHUB_BRANCH,
+      }),
+    }
+  );
+  if (!res.ok) {
+    if (res.status === 409) {
+      throw new Error("Os dados mudaram enquanto você editava. Recarregue a página e tente de novo.");
+    }
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.message || `Falha ao gravar ${path} no GitHub (status ${res.status})`);
+  }
+}
 
 const API = (() => {
   async function fetchJson(path) {
@@ -28,5 +99,81 @@ const API = (() => {
     return data.itens;
   }
 
-  return { loadFontes, loadEventos, loadVeiculos, loadFeed };
+  function isGithubConfigured() {
+    return !!getToken();
+  }
+
+  function configureGithubToken(token) {
+    setToken(token);
+  }
+
+  async function loadEventosGithub() {
+    const { data } = await ghGetFile(EVENTOS_PATH);
+    return (data && data.eventos) || [];
+  }
+
+  async function saveEventoStatus(eventId, status) {
+    const { data, sha } = await ghGetFile(EVENTOS_PATH);
+    const eventos = (data && data.eventos) || [];
+    const target = eventos.find((e) => e.id === eventId);
+    if (!target) throw new Error("evento não encontrado no GitHub");
+    target.status = status;
+    await ghPutFile(EVENTOS_PATH, { eventos }, sha, `Atualiza status de "${target.titulo}" para ${status}`);
+    return eventos;
+  }
+
+  async function addManualEventoGithub(evento) {
+    const { data, sha } = await ghGetFile(EVENTOS_PATH);
+    const eventos = (data && data.eventos) || [];
+    eventos.push(evento);
+    await ghPutFile(EVENTOS_PATH, { eventos }, sha, `Adiciona evento: ${evento.titulo}`);
+    return eventos;
+  }
+
+  async function removeEventoGithub(eventoId) {
+    const { data, sha } = await ghGetFile(EVENTOS_PATH);
+    const eventos = (data && data.eventos) || [];
+    const filtered = eventos.filter((e) => e.id !== eventoId);
+    await ghPutFile(EVENTOS_PATH, { eventos: filtered }, sha, `Remove evento ${eventoId}`);
+    return filtered;
+  }
+
+  async function loadFeedSalvosGithub() {
+    const { data } = await ghGetFile(FEED_SALVOS_PATH);
+    return (data && data.itens) || [];
+  }
+
+  async function saveFeedItemGithub(item) {
+    const { data, sha } = await ghGetFile(FEED_SALVOS_PATH);
+    const itens = (data && data.itens) || [];
+    if (!itens.some((i) => i.id === item.id)) {
+      itens.push({ ...item, salvo_em: new Date().toISOString() });
+    }
+    await ghPutFile(FEED_SALVOS_PATH, { itens }, sha, `Salva item do feed: ${item.titulo}`);
+    return itens;
+  }
+
+  async function removeFeedItemGithub(itemId) {
+    const { data, sha } = await ghGetFile(FEED_SALVOS_PATH);
+    const itens = (data && data.itens) || [];
+    const filtered = itens.filter((i) => i.id !== itemId);
+    await ghPutFile(FEED_SALVOS_PATH, { itens: filtered }, sha, "Remove item salvo do feed");
+    return filtered;
+  }
+
+  return {
+    loadFontes,
+    loadEventos,
+    loadVeiculos,
+    loadFeed,
+    isGithubConfigured,
+    configureGithubToken,
+    loadEventosGithub,
+    saveEventoStatus,
+    addManualEventoGithub,
+    removeEventoGithub,
+    loadFeedSalvosGithub,
+    saveFeedItemGithub,
+    removeFeedItemGithub,
+  };
 })();

@@ -86,6 +86,16 @@ textarea {
   border-color: var(--muted);
 }
 
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.theme-toggle.is-active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Toolbar: view tabs, filters, add button */
 
 .toolbar {

@@ -37,7 +37,7 @@ jobs:
         run: |
           mkdir -p dist
           cp index.html style.css app.js api-client.js favicon.svg dist/
-          cp fontes.json eventos.json veiculos.json feed.json dist/
+          cp fontes.json eventos.json veiculos.json feed.json feed-salvos.json dist/
 
       - uses: actions/configure-pages@v5
 
