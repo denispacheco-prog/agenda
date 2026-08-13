@@ -12,6 +12,19 @@
       "status": "novo",
       "origem": "manual",
       "criado_em": "2026-08-13T16:48:09.425Z"
+    },
+    {
+      "id": "bodogami-2026-08-25-popcorn-quiz-filmes-e-series",
+      "titulo": "Popcorn Quiz: Filmes e Séries",
+      "data_inicio": "2026-08-25T20:00:00-03:00",
+      "data_fim": null,
+      "fonte_id": "bodogami",
+      "categoria": "jogos",
+      "url": "https://www.instagram.com/p/DbYjSVpFq3z/",
+      "descricao": "Inscrição está inclusa no Couvert Lúdico de R$28, taxa cobrada para jogar a vontade no restaurante, de segunda a sexta-feira.",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-13T16:48:47.394Z"
     }
   ]
 }
