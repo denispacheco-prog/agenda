@@ -125,6 +125,21 @@ const API = (() => {
   async function addManualEventoGithub(evento) {
     const { data, sha } = await ghGetFile(EVENTOS_PATH);
     const eventos = (data && data.eventos) || [];
+
+    // O id chega calculado a partir do estado local, que pode estar
+    // desatualizado em relação ao arquivo no GitHub (ex.: duas gravações
+    // próximas antes do estado local refletir a primeira). Revalida contra
+    // os dados recém-buscados pra nunca gravar um id duplicado.
+    if (eventos.some((e) => e.id === evento.id)) {
+      let n = 2;
+      let novoId = `${evento.id}-${n}`;
+      while (eventos.some((e) => e.id === novoId)) {
+        n++;
+        novoId = `${evento.id}-${n}`;
+      }
+      evento = { ...evento, id: novoId };
+    }
+
     eventos.push(evento);
     await ghPutFile(EVENTOS_PATH, { eventos }, sha, `Adiciona evento: ${evento.titulo}`);
     return eventos;

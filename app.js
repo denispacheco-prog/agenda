@@ -664,7 +664,10 @@ function setupForm() {
 
     if (API.isGithubConfigured()) {
       try {
-        await API.addManualEventoGithub(novoEvento);
+        // addManualEventoGithub pode renomear o id se houver colisão contra
+        // os dados mais recentes do GitHub — usa o array retornado como
+        // fonte da verdade em vez de empurrar novoEvento cegamente.
+        state.eventos = await API.addManualEventoGithub(novoEvento);
       } catch (err) {
         alert(err.message);
         return;
@@ -673,8 +676,8 @@ function setupForm() {
       const manuais = loadManualEventos();
       manuais.push(novoEvento);
       saveManualEventos(manuais);
+      state.eventos.push(novoEvento);
     }
-    state.eventos.push(novoEvento);
 
     panel.reset();
     panel.hidden = true;
