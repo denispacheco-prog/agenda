@@ -21,71 +21,71 @@
   <header class="app-header">
     <h1 class="site-title">Agenda</h1>
     <div class="header-actions">
-      <button id="github-config-btn" class="theme-toggle" type="button" aria-label="Configurar sincronização com GitHub" title="Configurar sincronização com GitHub">🔑</button>
-      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Alternar tema">☀</button>
+      <button id="github-config-btn" class="theme-toggle" type="button" aria-label="configurar sincronização com GitHub" title="configurar sincronização com GitHub">🔑</button>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-label="alternar tema">☀</button>
     </div>
   </header>
 
   <div class="toolbar">
     <div class="view-tabs">
-      <button class="view-tab" data-view="feed" type="button">Feed</button>
-      <button class="view-tab" data-view="lista" type="button">Lista</button>
-      <button class="view-tab" data-view="calendario" type="button">Calendário</button>
-      <button class="view-tab" data-view="salvos" type="button">Salvos</button>
+      <button class="view-tab" data-view="feed" type="button">feed</button>
+      <button class="view-tab" data-view="lista" type="button">lista</button>
+      <button class="view-tab" data-view="calendario" type="button">calendário</button>
+      <button class="view-tab" data-view="salvos" type="button">salvos</button>
     </div>
 
     <div class="filters" id="filtros-eventos">
       <select id="filtro-categoria">
-        <option value="">Categoria</option>
+        <option value="">categoria</option>
       </select>
       <select id="filtro-bairro">
-        <option value="">Bairro</option>
+        <option value="">bairro</option>
       </select>
       <select id="filtro-fonte">
-        <option value="">Lugar</option>
+        <option value="">lugar</option>
       </select>
     </div>
 
-    <button id="btn-add-evento" class="btn btn-primary" type="button">+ Adicionar evento</button>
+    <button id="btn-add-evento" class="btn btn-primary" type="button">+ adicionar evento</button>
   </div>
 
   <main id="app">
     <form id="form-add-evento" class="form-panel" hidden>
-      <h2>Adicionar evento manualmente</h2>
+      <h2>adicionar evento manualmente</h2>
 
       <div class="form-row">
-        <label for="form-fonte">Lugar</label>
+        <label for="form-fonte">lugar</label>
         <select id="form-fonte" required></select>
       </div>
 
       <div class="form-row">
-        <label for="form-titulo">Título</label>
+        <label for="form-titulo">título</label>
         <input id="form-titulo" type="text" required />
       </div>
 
       <div class="form-row">
-        <label for="form-inicio">Data/hora de início</label>
+        <label for="form-inicio">data/hora de início</label>
         <input id="form-inicio" type="datetime-local" required />
       </div>
 
       <div class="form-row">
-        <label for="form-fim">Data/hora de fim (opcional)</label>
+        <label for="form-fim">data/hora de fim (opcional)</label>
         <input id="form-fim" type="datetime-local" />
       </div>
 
       <div class="form-row">
-        <label for="form-url">Link (opcional)</label>
+        <label for="form-url">link (opcional)</label>
         <input id="form-url" type="url" placeholder="https://..." />
       </div>
 
       <div class="form-row">
-        <label for="form-descricao">Descrição (opcional)</label>
+        <label for="form-descricao">descrição (opcional)</label>
         <textarea id="form-descricao" rows="2"></textarea>
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">Salvar evento</button>
-        <button type="button" id="btn-cancel-evento" class="btn">Cancelar</button>
+        <button type="submit" class="btn btn-primary">salvar evento</button>
+        <button type="button" id="btn-cancel-evento" class="btn">cancelar</button>
       </div>
     </form>
 

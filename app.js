@@ -138,9 +138,9 @@ function dayLabel(date) {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   const diffDays = Math.round((d - today) / 86400000);
-  if (diffDays === 0) return "Hoje";
-  if (diffDays === 1) return "Amanhã";
-  if (diffDays === -1) return "Ontem";
+  if (diffDays === 0) return "hoje";
+  if (diffDays === 1) return "amanhã";
+  if (diffDays === -1) return "ontem";
   const opts = { day: "2-digit", month: "long" };
   if (d.getFullYear() !== today.getFullYear()) opts.year = "numeric";
   return d.toLocaleDateString("pt-BR", opts);
@@ -254,9 +254,9 @@ function eventCardHtml(ev) {
       <div class="event-meta">${escapeHtml(fonte ? fonte.nome : ev.fonte_id)}${fonte && fonte.bairro ? " · " + escapeHtml(fonte.bairro) : ""}${fonte && fonte.subcategoria ? " · " + escapeHtml(fonte.subcategoria) : ""}</div>
       ${descricaoHtml}
       <div class="triagem" data-event-id="${escapeHtml(ev.id)}">
-        <button type="button" class="triagem-btn${ev.status === "interesse" ? " is-active" : ""}" data-status="interesse">Interesse</button>
-        <button type="button" class="triagem-btn${ev.status === "salvo" ? " is-active" : ""}" data-status="salvo">Salvo</button>
-        <button type="button" class="triagem-btn${ev.status === "descartado" ? " is-active" : ""}" data-status="descartado">Descartar</button>
+        <button type="button" class="triagem-btn${ev.status === "interesse" ? " is-active" : ""}" data-status="interesse">interesse</button>
+        <button type="button" class="triagem-btn${ev.status === "salvo" ? " is-active" : ""}" data-status="salvo">salvo</button>
+        <button type="button" class="triagem-btn${ev.status === "descartado" ? " is-active" : ""}" data-status="descartado">descartar</button>
         ${removerHtml}
       </div>
     </article>`;
@@ -271,7 +271,7 @@ function attachCardListeners(container) {
   });
   container.querySelectorAll(".event-remover").forEach((btn) => {
     btn.addEventListener("click", () => {
-      if (confirm("Remover este evento adicionado manualmente?")) {
+      if (confirm("remover este evento adicionado manualmente?")) {
         removeManualEvento(btn.dataset.removeId);
       }
     });
@@ -285,7 +285,7 @@ function renderLista(container, eventos, isSalvosView) {
 
   if (sorted.length === 0) {
     container.innerHTML = `<p class="empty-state">${
-      isSalvosView ? "Nenhum evento salvo ainda." : "Nenhum evento encontrado com esses filtros."
+      isSalvosView ? "nenhum evento salvo ainda." : "nenhum evento com esses filtros."
     }</p>`;
     return;
   }
@@ -305,7 +305,7 @@ function renderLista(container, eventos, isSalvosView) {
     const hidden = countHiddenDescartados();
     if (hidden > 0 || state.showDescartados) {
       html += `<button type="button" class="toggle-descartados" id="toggle-descartados">${
-        state.showDescartados ? "Ocultar descartados" : `Mostrar descartados (${hidden})`
+        state.showDescartados ? "ocultar descartados" : `mostrar descartados (${hidden})`
       }</button>`;
     }
   }
@@ -350,7 +350,7 @@ function renderCalendarDetail(eventosByDay) {
     .toLocaleDateString("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
 
   if (dayEventos.length === 0) {
-    detail.innerHTML = `<h3>${label}</h3><p class="empty-state">Nenhum evento neste dia.</p>`;
+    detail.innerHTML = `<h3>${label}</h3><p class="empty-state">nenhum evento neste dia.</p>`;
     return;
   }
   detail.innerHTML = `<h3>${label}</h3>` + dayEventos.map(eventCardHtml).join("");
@@ -383,7 +383,7 @@ function renderCalendario(container, eventos) {
     </div>
     <div class="calendar-grid">`;
 
-  ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"].forEach((w) => {
+  ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"].forEach((w) => {
     html += `<div class="calendar-weekday">${w}</div>`;
   });
 
@@ -471,7 +471,7 @@ function feedItemHtml(item, salvosSet) {
       <h3 class="event-titulo"><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener">${escapeHtml(item.titulo)}</a></h3>
       ${resumoHtml}
       <div class="triagem">
-        <button type="button" class="triagem-btn${isSalvo ? " is-active" : ""}" data-status="salvo" data-feed-id="${escapeHtml(item.id)}">${isSalvo ? "Salvo" : "Salvar"}</button>
+        <button type="button" class="triagem-btn${isSalvo ? " is-active" : ""}" data-status="salvo" data-feed-id="${escapeHtml(item.id)}">${isSalvo ? "salvo" : "salvar"}</button>
       </div>
     </article>`;
 }
@@ -487,15 +487,15 @@ function renderFeed(container) {
   const filterBarHtml = `
     <div class="feed-filterbar">
       <select id="feed-filtro-veiculo">
-        <option value="">Todos os veículos</option>
+        <option value="">todos os veículos</option>
         ${veiculosFeed.map((v) => `<option value="${escapeHtml(v.id)}"${state.feedFiltroVeiculo === v.id ? " selected" : ""}>${escapeHtml(v.nome)}</option>`).join("")}
       </select>
-      <button type="button" class="btn${state.feedSoSalvos ? " btn-primary" : ""}" id="feed-toggle-salvos">${state.feedSoSalvos ? "Mostrando só salvos" : "Só salvos"}</button>
+      <button type="button" class="btn${state.feedSoSalvos ? " btn-primary" : ""}" id="feed-toggle-salvos">${state.feedSoSalvos ? "mostrando só salvos" : "só salvos"}</button>
     </div>`;
 
   let itemsHtml = "";
   if (filtered.length === 0) {
-    itemsHtml = `<p class="empty-state">${state.feedSoSalvos ? "Nenhum item salvo ainda." : "Nenhum item no feed ainda."}</p>`;
+    itemsHtml = `<p class="empty-state">${state.feedSoSalvos ? "nenhum item salvo ainda." : "nenhum item no feed ainda."}</p>`;
   } else {
     let lastLabel = null;
     filtered.forEach((item) => {
@@ -512,7 +512,7 @@ function renderFeed(container) {
   if (veiculosManuais.length > 0) {
     linksHtml = `
       <div class="feed-links-panel">
-        <h3>Outros veículos (sem coleta automática)</h3>
+        <h3>outros veículos (sem coleta automática)</h3>
         <ul class="feed-links-list">
           ${veiculosManuais.map((v) => `<li><a href="${escapeHtml(v.url)}" target="_blank" rel="noopener">${escapeHtml(v.nome)}</a></li>`).join("")}
         </ul>
@@ -689,8 +689,8 @@ function updateGithubConfigButton() {
   const configured = API.isGithubConfigured();
   btn.classList.toggle("is-active", configured);
   btn.title = configured
-    ? "Sincronização com GitHub ativada — clique pra trocar ou remover o token"
-    : "Configurar token do GitHub pra sincronizar entre navegadores";
+    ? "sincronização com GitHub ativada — clique pra trocar ou remover o token"
+    : "configurar token do GitHub pra sincronizar entre navegadores";
 }
 
 async function loadEventosState() {
@@ -718,7 +718,7 @@ async function loadFeedSalvosState() {
 
 async function handleGithubConfig() {
   const token = window.prompt(
-    'Cole seu Personal Access Token do GitHub (permissão de leitura/escrita de conteúdo no repositório "agenda"). Deixe em branco e confirme pra remover a sincronização deste navegador.'
+    'cole seu Personal Access Token do GitHub (permissão de leitura/escrita de conteúdo no repositório "agenda"). deixe em branco e confirme pra remover a sincronização deste navegador.'
   );
   if (token === null) return;
 
@@ -756,7 +756,7 @@ async function init() {
     setupForm();
   } catch (err) {
     document.getElementById("conteudo").innerHTML =
-      `<p class="empty-state">Não foi possível carregar a Agenda: ${escapeHtml(err.message)}</p>`;
+      `<p class="empty-state">não foi possível carregar a Agenda: ${escapeHtml(err.message)}</p>`;
     return;
   }
 
