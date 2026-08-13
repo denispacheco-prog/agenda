@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta id="theme-color-meta" name="theme-color" content="#ffffff" />
+  <title>Agenda</title>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    (function () {
+      var stored = localStorage.getItem("agenda:theme");
+      var theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.documentElement.setAttribute("data-theme", theme);
+      var meta = document.getElementById("theme-color-meta");
+      if (meta) meta.setAttribute("content", theme === "dark" ? "#221f1c" : "#ffffff");
+    })();
+  </script>
+</head>
+<body>
+  <header class="app-header">
+    <h1 class="site-title">Agenda</h1>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Alternar tema">☀</button>
+  </header>
+
+  <div class="toolbar">
+    <div class="view-tabs">
+      <button class="view-tab" data-view="lista" type="button">Lista</button>
+      <button class="view-tab" data-view="calendario" type="button">Calendário</button>
+      <button class="view-tab" data-view="salvos" type="button">Salvos</button>
+    </div>
+
+    <div class="filters">
+      <select id="filtro-categoria">
+        <option value="">Categoria</option>
+      </select>
+      <select id="filtro-bairro">
+        <option value="">Bairro</option>
+      </select>
+      <select id="filtro-fonte">
+        <option value="">Lugar</option>
+      </select>
+    </div>
+
+    <button id="btn-add-evento" class="btn btn-primary" type="button">+ Adicionar evento</button>
+  </div>
+
+  <main id="app">
+    <form id="form-add-evento" class="form-panel" hidden>
+      <h2>Adicionar evento manualmente</h2>
+
+      <div class="form-row">
+        <label for="form-fonte">Lugar</label>
+        <select id="form-fonte" required></select>
+      </div>
+
+      <div class="form-row">
+        <label for="form-titulo">Título</label>
+        <input id="form-titulo" type="text" required />
+      </div>
+
+      <div class="form-row">
+        <label for="form-inicio">Data/hora de início</label>
+        <input id="form-inicio" type="datetime-local" required />
+      </div>
+
+      <div class="form-row">
+        <label for="form-fim">Data/hora de fim (opcional)</label>
+        <input id="form-fim" type="datetime-local" />
+      </div>
+
+      <div class="form-row">
+        <label for="form-url">Link (opcional)</label>
+        <input id="form-url" type="url" placeholder="https://..." />
+      </div>
+
+      <div class="form-row">
+        <label for="form-descricao">Descrição (opcional)</label>
+        <textarea id="form-descricao" rows="2"></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Salvar evento</button>
+        <button type="button" id="btn-cancel-evento" class="btn">Cancelar</button>
+      </div>
+    </form>
+
+    <div id="conteudo"></div>
+  </main>
+
+  <script src="api-client.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

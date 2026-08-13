@@ -1,0 +1,40 @@
+{
+  "fontes": [
+    {
+      "id": "cinemateca-brasileira",
+      "nome": "Cinemateca Brasileira",
+      "categoria": "cinema",
+      "bairro": "Vila Clementino",
+      "url": "https://cinemateca.org.br",
+      "tipo_coleta": "site",
+      "feed_url": null
+    },
+    {
+      "id": "sesc-pompeia",
+      "nome": "Sesc Pompeia",
+      "categoria": "clube",
+      "bairro": "Pompeia",
+      "url": "https://sescsp.org.br/pompeia",
+      "tipo_coleta": "site",
+      "feed_url": null
+    },
+    {
+      "id": "livraria-cultura-conjunto-nacional",
+      "nome": "Livraria Cultura - Conjunto Nacional",
+      "categoria": "livraria",
+      "bairro": "Bela Vista",
+      "url": "https://www.livrariacultura.com.br",
+      "tipo_coleta": "manual",
+      "feed_url": null
+    },
+    {
+      "id": "masp",
+      "nome": "MASP",
+      "categoria": "museu",
+      "bairro": "Bela Vista",
+      "url": "https://masp.org.br",
+      "tipo_coleta": "feed",
+      "feed_url": null
+    }
+  ]
+}

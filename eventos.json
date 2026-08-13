@@ -1,0 +1,56 @@
+{
+  "eventos": [
+    {
+      "id": "cinemateca-brasileira-2026-08-20-mostra-cinema-novo",
+      "titulo": "Mostra Cinema Novo",
+      "data_inicio": "2026-08-20T19:00:00-03:00",
+      "data_fim": null,
+      "fonte_id": "cinemateca-brasileira",
+      "categoria": "cinema",
+      "url": "https://cinemateca.org.br",
+      "descricao": "Sessão especial com debate após a exibição.",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-13T10:00:00-03:00"
+    },
+    {
+      "id": "sesc-pompeia-2026-08-22-show-jazz",
+      "titulo": "Show de jazz instrumental",
+      "data_inicio": "2026-08-22T20:30:00-03:00",
+      "data_fim": "2026-08-22T22:30:00-03:00",
+      "fonte_id": "sesc-pompeia",
+      "categoria": "show",
+      "url": "https://sescsp.org.br/pompeia",
+      "descricao": "",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-13T10:00:00-03:00"
+    },
+    {
+      "id": "masp-2026-08-15-exposicao-modernismo",
+      "titulo": "Exposição: Modernismo Brasileiro",
+      "data_inicio": "2026-08-15T10:00:00-03:00",
+      "data_fim": "2026-11-30T18:00:00-03:00",
+      "fonte_id": "masp",
+      "categoria": "museu",
+      "url": "https://masp.org.br",
+      "descricao": "Exposição de longa duração.",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-13T10:00:00-03:00"
+    },
+    {
+      "id": "livraria-cultura-conjunto-nacional-2026-09-03-lancamento-livro",
+      "titulo": "Lançamento de livro com bate-papo",
+      "data_inicio": "2026-09-03T18:30:00-03:00",
+      "data_fim": null,
+      "fonte_id": "livraria-cultura-conjunto-nacional",
+      "categoria": "livraria",
+      "url": null,
+      "descricao": "Divulgado apenas no Instagram da livraria.",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-13T10:00:00-03:00"
+    }
+  ]
+}
