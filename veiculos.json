@@ -22,6 +22,14 @@
       "feed_url": "https://agendaculturalsaopaulo.com/feed/"
     },
     {
+      "id": "folha-ilustrada",
+      "nome": "Folha Ilustrada",
+      "url": "https://www1.folha.uol.com.br/ilustrada/",
+      "tipo_coleta": "feed",
+      "feed_url": "https://content.scripts.farolsign.com.br/dinamicos/feed/folha/editorias/ilustrada",
+      "formato": "farolsign"
+    },
+    {
       "id": "guia-folha",
       "nome": "Guia da Folha",
       "url": "https://guia.folha.uol.com.br",

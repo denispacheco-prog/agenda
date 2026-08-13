@@ -41,8 +41,12 @@ async function fetchVeiculoItems(veiculo) {
       throw new Error(`HTTP ${response.status}`);
     }
     const xml = decodeXml(await response.arrayBuffer());
-    const parsed = await parser.parseString(xml);
 
+    if (veiculo.formato === 'farolsign') {
+      return parseFarolsignItems(xml, veiculo);
+    }
+
+    const parsed = await parser.parseString(xml);
     return parsed.items
       .map((item) => normalizeItem(item, veiculo))
       .filter((item) => item !== null);
@@ -52,6 +56,52 @@ async function fetchVeiculoItems(veiculo) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+function decodeXmlEntities(str) {
+  return str
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
+}
+
+// Formato proprietário (não é RSS/Atom): <data><item><pubDate>YYYY-MM-DD
+// HH:MM:SS</pubDate><title>...</title><description><truncate>...</truncate>
+// ...</description></item></data>, sem <link> por item. Como não há URL do
+// artigo original, cada item aponta pra veiculo.url (a seção, não a matéria
+// específica) — é o melhor link disponível nesse formato.
+function parseFarolsignItems(xml, veiculo) {
+  const itemBlocks = xml.match(/<item>[\s\S]*?<\/item>/g) || [];
+
+  return itemBlocks
+    .map((raw) => {
+      const pubDateMatch = raw.match(/<pubDate>([\s\S]*?)<\/pubDate>/);
+      const titleMatch = raw.match(/<title>([\s\S]*?)<\/title>/);
+      const truncateMatch = raw.match(/<truncate>([\s\S]*?)<\/truncate>/);
+
+      const pubDateRaw = pubDateMatch ? pubDateMatch[1].trim() : null;
+      const title = titleMatch ? decodeXmlEntities(titleMatch[1].trim()) : null;
+      if (!pubDateRaw || !title) return null;
+
+      const date = new Date(pubDateRaw.replace(' ', 'T') + '-03:00');
+      if (Number.isNaN(date.getTime())) return null;
+
+      const resumo = truncateMatch
+        ? decodeXmlEntities(truncateMatch[1].trim()).slice(0, SUMMARY_MAX_LENGTH)
+        : '';
+
+      return {
+        id: `${veiculo.id}|${pubDateRaw}|${title}`,
+        titulo: title,
+        link: veiculo.url,
+        veiculo_id: veiculo.id,
+        publicado_em: date.toISOString(),
+        resumo,
+      };
+    })
+    .filter((item) => item !== null);
 }
 
 function normalizeItem(item, veiculo) {
