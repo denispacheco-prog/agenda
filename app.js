@@ -8,6 +8,7 @@ const CATEGORIA_LABELS = {
   balada: "Balada",
   clube: "Clube",
   restaurante: "Restaurante",
+  jogos: "Jogos",
 };
 
 const CATEGORIA_COLORS = {
@@ -20,6 +21,7 @@ const CATEGORIA_COLORS = {
   balada: "#e64980",
   clube: "#15aabf",
   restaurante: "#c2410c",
+  jogos: "#0ca678",
 };
 
 const THEME_KEY = "agenda:theme";
@@ -204,7 +206,7 @@ function eventCardHtml(ev) {
         <span class="event-hora">${hora}</span>
       </div>
       <h3 class="event-titulo">${tituloHtml}</h3>
-      <div class="event-meta">${escapeHtml(fonte ? fonte.nome : ev.fonte_id)}${fonte && fonte.bairro ? " · " + escapeHtml(fonte.bairro) : ""}</div>
+      <div class="event-meta">${escapeHtml(fonte ? fonte.nome : ev.fonte_id)}${fonte && fonte.bairro ? " · " + escapeHtml(fonte.bairro) : ""}${fonte && fonte.subcategoria ? " · " + escapeHtml(fonte.subcategoria) : ""}</div>
       ${descricaoHtml}
       <div class="triagem" data-event-id="${escapeHtml(ev.id)}">
         <button type="button" class="triagem-btn${ev.status === "interesse" ? " is-active" : ""}" data-status="interesse">Interesse</button>
