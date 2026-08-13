@@ -1,0 +1,53 @@
+{
+  "veiculos": [
+    {
+      "id": "estadao-cultura",
+      "nome": "Estadão Cultura",
+      "url": "https://www.estadao.com.br/cultura/",
+      "tipo_coleta": "feed",
+      "feed_url": "https://www.estadao.com.br/arc/outboundfeeds/feeds/rss/sections/cultura/"
+    },
+    {
+      "id": "sao-paulo-secreto",
+      "nome": "São Paulo Secreto",
+      "url": "https://saopaulosecreto.com",
+      "tipo_coleta": "feed",
+      "feed_url": "https://saopaulosecreto.com/feed/"
+    },
+    {
+      "id": "agenda-cultural-sp",
+      "nome": "Agenda Cultural São Paulo",
+      "url": "https://agendaculturalsaopaulo.com",
+      "tipo_coleta": "feed",
+      "feed_url": "https://agendaculturalsaopaulo.com/feed/"
+    },
+    {
+      "id": "guia-folha",
+      "nome": "Guia da Folha",
+      "url": "https://guia.folha.uol.com.br",
+      "tipo_coleta": "manual",
+      "feed_url": null
+    },
+    {
+      "id": "veja-sp",
+      "nome": "Veja São Paulo",
+      "url": "https://vejasp.abril.com.br",
+      "tipo_coleta": "manual",
+      "feed_url": null
+    },
+    {
+      "id": "sympla",
+      "nome": "Sympla",
+      "url": "https://www.sympla.com.br",
+      "tipo_coleta": "manual",
+      "feed_url": null
+    },
+    {
+      "id": "ingresso-com",
+      "nome": "Ingresso.com",
+      "url": "https://www.ingresso.com",
+      "tipo_coleta": "manual",
+      "feed_url": null
+    }
+  ]
+}

@@ -24,19 +24,33 @@ const CATEGORIA_COLORS = {
   jogos: "#0ca678",
 };
 
+const VEICULO_PALETTE = ["#4c6ef5", "#e0575b", "#2f9e44", "#9b59b6", "#d9822b", "#0ca678", "#e64980", "#15aabf"];
+
+function hueForVeiculo(id) {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = (hash * 31 + id.charCodeAt(i)) >>> 0;
+  return VEICULO_PALETTE[hash % VEICULO_PALETTE.length];
+}
+
 const THEME_KEY = "agenda:theme";
 const STATUS_KEY = "agenda:status";
 const MANUAL_EVENTOS_KEY = "agenda:eventosManuais";
+const FEED_SALVOS_KEY = "agenda:feedSalvos";
 
 const state = {
   fontes: [],
   fontesById: new Map(),
   eventos: [],
   filtros: { categoria: "", bairro: "", fonteId: "" },
-  viewMode: "lista",
+  viewMode: "feed",
   showDescartados: false,
   calendar: { year: 0, month: 0 },
   selectedDayKey: null,
+  veiculos: [],
+  veiculosById: new Map(),
+  feedItens: [],
+  feedFiltroVeiculo: "",
+  feedSoSalvos: false,
 };
 
 // --- localStorage helpers ---
@@ -63,6 +77,27 @@ function loadManualEventos() {
 
 function saveManualEventos(eventos) {
   localStorage.setItem(MANUAL_EVENTOS_KEY, JSON.stringify(eventos));
+}
+
+function loadFeedSalvos() {
+  try {
+    return JSON.parse(localStorage.getItem(FEED_SALVOS_KEY)) || [];
+  } catch {
+    return [];
+  }
+}
+
+function saveFeedSalvos(ids) {
+  localStorage.setItem(FEED_SALVOS_KEY, JSON.stringify(ids));
+}
+
+function toggleFeedSalvo(id) {
+  const salvos = loadFeedSalvos();
+  const idx = salvos.indexOf(id);
+  if (idx === -1) salvos.push(id);
+  else salvos.splice(idx, 1);
+  saveFeedSalvos(salvos);
+  render();
 }
 
 // --- utils ---
@@ -380,18 +415,113 @@ function renderCalendario(container, eventos) {
   renderCalendarDetail(eventosByDay);
 }
 
+// --- rendering: feed ---
+
+function getFilteredFeedItens(salvosSet) {
+  return state.feedItens.filter((item) => {
+    if (state.feedFiltroVeiculo && item.veiculo_id !== state.feedFiltroVeiculo) return false;
+    if (state.feedSoSalvos && !salvosSet.has(item.id)) return false;
+    return true;
+  });
+}
+
+function feedItemHtml(item, salvosSet) {
+  const veiculo = state.veiculosById.get(item.veiculo_id);
+  const hue = hueForVeiculo(item.veiculo_id);
+  const hora = new Date(item.publicado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const isSalvo = salvosSet.has(item.id);
+  const resumoHtml = item.resumo ? `<p class="event-descricao">${escapeHtml(item.resumo)}</p>` : "";
+
+  return `
+    <article class="event-card">
+      <div class="event-card-top">
+        <span class="event-categoria" style="--cat-hue:${hue}">${escapeHtml(veiculo ? veiculo.nome : item.veiculo_id)}</span>
+        <span class="event-hora">${hora}</span>
+      </div>
+      <h3 class="event-titulo"><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener">${escapeHtml(item.titulo)}</a></h3>
+      ${resumoHtml}
+      <div class="triagem">
+        <button type="button" class="triagem-btn${isSalvo ? " is-active" : ""}" data-status="salvo" data-feed-id="${escapeHtml(item.id)}">${isSalvo ? "Salvo" : "Salvar"}</button>
+      </div>
+    </article>`;
+}
+
+function renderFeed(container) {
+  const salvosSet = new Set(loadFeedSalvos());
+  const filtered = [...getFilteredFeedItens(salvosSet)].sort((a, b) => b.publicado_em.localeCompare(a.publicado_em));
+
+  const veiculosFeed = state.veiculos.filter((v) => v.tipo_coleta === "feed");
+  const veiculosManuais = state.veiculos.filter((v) => v.tipo_coleta !== "feed");
+
+  const filterBarHtml = `
+    <div class="feed-filterbar">
+      <select id="feed-filtro-veiculo">
+        <option value="">Todos os veículos</option>
+        ${veiculosFeed.map((v) => `<option value="${escapeHtml(v.id)}"${state.feedFiltroVeiculo === v.id ? " selected" : ""}>${escapeHtml(v.nome)}</option>`).join("")}
+      </select>
+      <button type="button" class="btn${state.feedSoSalvos ? " btn-primary" : ""}" id="feed-toggle-salvos">${state.feedSoSalvos ? "Mostrando só salvos" : "Só salvos"}</button>
+    </div>`;
+
+  let itemsHtml = "";
+  if (filtered.length === 0) {
+    itemsHtml = `<p class="empty-state">${state.feedSoSalvos ? "Nenhum item salvo ainda." : "Nenhum item no feed ainda."}</p>`;
+  } else {
+    let lastLabel = null;
+    filtered.forEach((item) => {
+      const label = dayLabel(new Date(item.publicado_em));
+      if (label !== lastLabel) {
+        itemsHtml += `<h2 class="stream-date-heading">${label}</h2>`;
+        lastLabel = label;
+      }
+      itemsHtml += feedItemHtml(item, salvosSet);
+    });
+  }
+
+  let linksHtml = "";
+  if (veiculosManuais.length > 0) {
+    linksHtml = `
+      <div class="feed-links-panel">
+        <h3>Outros veículos (sem coleta automática)</h3>
+        <ul class="feed-links-list">
+          ${veiculosManuais.map((v) => `<li><a href="${escapeHtml(v.url)}" target="_blank" rel="noopener">${escapeHtml(v.nome)}</a></li>`).join("")}
+        </ul>
+      </div>`;
+  }
+
+  container.innerHTML = filterBarHtml + itemsHtml + linksHtml;
+
+  document.getElementById("feed-filtro-veiculo").addEventListener("change", (e) => {
+    state.feedFiltroVeiculo = e.target.value;
+    render();
+  });
+  document.getElementById("feed-toggle-salvos").addEventListener("click", () => {
+    state.feedSoSalvos = !state.feedSoSalvos;
+    render();
+  });
+  container.querySelectorAll(".triagem-btn[data-feed-id]").forEach((btn) => {
+    btn.addEventListener("click", () => toggleFeedSalvo(btn.dataset.feedId));
+  });
+}
+
 // --- render dispatch ---
 
 function updateActiveViewTab() {
   document.querySelectorAll(".view-tab").forEach((btn) => {
     btn.classList.toggle("is-active", btn.dataset.view === state.viewMode);
   });
+  const isFeed = state.viewMode === "feed";
+  document.getElementById("filtros-eventos").hidden = isFeed;
+  document.getElementById("btn-add-evento").hidden = isFeed;
 }
 
 function render() {
   updateActiveViewTab();
-  const filtered = getFilteredEventos();
   const container = document.getElementById("conteudo");
+  if (state.viewMode === "feed") {
+    renderFeed(container);
+    return;
+  }
+  const filtered = getFilteredEventos();
   if (state.viewMode === "calendario") {
     renderCalendario(container, filtered);
   } else {
@@ -531,11 +661,22 @@ async function init() {
     setupFiltros();
     setupViewTabs();
     setupForm();
-    render();
   } catch (err) {
     document.getElementById("conteudo").innerHTML =
       `<p class="empty-state">Não foi possível carregar a Agenda: ${escapeHtml(err.message)}</p>`;
+    return;
   }
+
+  try {
+    const [veiculos, feedItens] = await Promise.all([API.loadVeiculos(), API.loadFeed()]);
+    state.veiculos = veiculos;
+    veiculos.forEach((v) => state.veiculosById.set(v.id, v));
+    state.feedItens = feedItens;
+  } catch (err) {
+    console.error("[agenda] falha ao carregar o feed:", err.message);
+  }
+
+  render();
 }
 
 document.addEventListener("DOMContentLoaded", init);

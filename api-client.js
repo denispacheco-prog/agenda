@@ -18,5 +18,15 @@ const API = (() => {
     return data.eventos;
   }
 
-  return { loadFontes, loadEventos };
+  async function loadVeiculos() {
+    const data = await fetchJson("veiculos.json");
+    return data.veiculos;
+  }
+
+  async function loadFeed() {
+    const data = await fetchJson("feed.json");
+    return data.itens;
+  }
+
+  return { loadFontes, loadEventos, loadVeiculos, loadFeed };
 })();

@@ -1,0 +1,16 @@
+{
+  "name": "agenda",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Agenda cultural pessoal, com rio de feeds de veiculos de SP.",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build-feed": "node scripts/build-feed.js"
+  },
+  "dependencies": {
+    "rss-parser": "^3.13.0"
+  }
+}

@@ -294,6 +294,56 @@ main {
   text-decoration: underline;
 }
 
+/* Feed view */
+
+.feed-filterbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.feed-filterbar select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+}
+
+.feed-links-panel {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.feed-links-panel h3 {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+}
+
+.feed-links-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+}
+
+.feed-links-list a {
+  font-size: 0.9rem;
+  text-decoration: underline;
+  color: var(--muted);
+}
+
+.feed-links-list a:hover {
+  color: var(--fg);
+}
+
 /* Calendar view */
 
 .calendar-nav {
