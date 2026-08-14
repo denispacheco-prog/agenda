@@ -460,19 +460,17 @@ function feedItemHtml(item, salvosSet) {
   const hue = hueForVeiculo(item.veiculo_id);
   const hora = new Date(item.publicado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   const isSalvo = salvosSet.has(item.id);
-  const resumoHtml = item.resumo ? `<p class="event-descricao">${escapeHtml(item.resumo)}</p>` : "";
+  const resumoHtml = item.resumo ? `<p class="feed-item-summary">${escapeHtml(item.resumo)}</p>` : "";
 
   return `
-    <article class="event-card">
-      <div class="event-card-top">
-        <span class="event-categoria" style="--cat-hue:${hue}">${escapeHtml(veiculo ? veiculo.nome : item.veiculo_id)}</span>
-        <span class="event-hora">${hora}</span>
+    <article class="feed-item">
+      <div class="feed-item-meta">
+        <span class="feed-item-source" style="--cat-hue:${hue}">${escapeHtml(veiculo ? veiculo.nome : item.veiculo_id)}</span>
+        <span class="feed-item-date">${hora}</span>
+        <button type="button" class="feed-save-btn${isSalvo ? " is-saved" : ""}" data-feed-id="${escapeHtml(item.id)}" aria-label="${isSalvo ? "remover dos salvos" : "salvar"}" title="${isSalvo ? "salvo" : "salvar"}">${isSalvo ? "★" : "☆"}</button>
       </div>
-      <h3 class="event-titulo"><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener">${escapeHtml(item.titulo)}</a></h3>
+      <h3 class="feed-item-title"><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener">${escapeHtml(item.titulo)}</a></h3>
       ${resumoHtml}
-      <div class="triagem">
-        <button type="button" class="triagem-btn${isSalvo ? " is-active" : ""}" data-status="salvo" data-feed-id="${escapeHtml(item.id)}">${isSalvo ? "salvo" : "salvar"}</button>
-      </div>
     </article>`;
 }
 
@@ -529,7 +527,7 @@ function renderFeed(container) {
     state.feedSoSalvos = !state.feedSoSalvos;
     render();
   });
-  container.querySelectorAll(".triagem-btn[data-feed-id]").forEach((btn) => {
+  container.querySelectorAll(".feed-save-btn[data-feed-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.feedId;
       const item = state.feedItens.find((i) => i.id === id) || state.feedSalvos.find((i) => i.id === id);
