@@ -19,7 +19,7 @@
 </head>
 <body>
   <header class="app-header">
-    <h1 class="site-title">Agenda</h1>
+    <h1 class="site-title">🗓️ Agenda</h1>
     <div class="header-actions">
       <button id="github-config-btn" class="theme-toggle" type="button" aria-label="configurar sincronização com GitHub" title="configurar sincronização com GitHub">🔑</button>
       <button id="theme-toggle" class="theme-toggle" type="button" aria-label="alternar tema">☀</button>
@@ -71,6 +71,15 @@
       <div class="form-row">
         <label for="form-fim">data/hora de fim (opcional)</label>
         <input id="form-fim" type="datetime-local" />
+      </div>
+
+      <div class="form-row">
+        <label for="form-preco">preço (opcional)</label>
+        <select id="form-preco">
+          <option value="">não informado</option>
+          <option value="gratis">grátis</option>
+          <option value="pago">pago</option>
+        </select>
       </div>
 
       <div class="form-row">

@@ -24,6 +24,11 @@ const CATEGORIA_COLORS = {
   jogos: "#0ca678",
 };
 
+const PRECO_LABELS = {
+  gratis: "grátis",
+  pago: "pago",
+};
+
 const VEICULO_PALETTE = ["#4c6ef5", "#e0575b", "#2f9e44", "#9b59b6", "#d9822b", "#0ca678", "#e64980", "#15aabf"];
 
 function hueForVeiculo(id) {
@@ -236,6 +241,9 @@ function eventCardHtml(ev) {
   const hue = CATEGORIA_COLORS[ev.categoria] || "";
   const hora = new Date(ev.data_inicio).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   const catLabel = CATEGORIA_LABELS[ev.categoria] || ev.categoria;
+  const precoTagHtml = ev.preco && PRECO_LABELS[ev.preco]
+    ? `<span class="event-tag event-tag--${escapeHtml(ev.preco)}">${escapeHtml(PRECO_LABELS[ev.preco])}</span>`
+    : "";
   const tituloHtml = ev.url
     ? `<a href="${escapeHtml(ev.url)}" target="_blank" rel="noopener">${escapeHtml(ev.titulo)}</a>`
     : escapeHtml(ev.titulo);
@@ -248,6 +256,7 @@ function eventCardHtml(ev) {
     <article class="event-card${ev.status === "descartado" ? " is-descartado" : ""}" style="--cat-hue:${hue}">
       <div class="event-card-top">
         <span class="event-categoria">${escapeHtml(catLabel)}</span>
+        ${precoTagHtml}
         <span class="event-hora">${hora}</span>
       </div>
       <h3 class="event-titulo">${tituloHtml}</h3>
@@ -374,6 +383,7 @@ function renderCalendario(container, eventos) {
 
   const monthLabel = firstOfMonth.toLocaleDateString("pt-BR", { month: "long", year: "numeric" });
   const todayKey = dateKey(new Date());
+  const maxVisivelPorDia = window.matchMedia("(max-width: 600px)").matches ? 1 : 3;
 
   let html = `
     <div class="calendar-nav">
@@ -397,16 +407,18 @@ function renderCalendario(container, eventos) {
     if (key === todayKey) classes.push("is-today");
     if (key === state.selectedDayKey) classes.push("is-selected");
 
-    let dots = "";
-    dayEventos.slice(0, 4).forEach((ev) => {
-      dots += `<span class="calendar-day-dot" style="--cat-hue:${CATEGORIA_COLORS[ev.categoria] || ""}"></span>`;
+    const dayEventosOrdenados = [...dayEventos].sort((a, b) => a.data_inicio.localeCompare(b.data_inicio));
+    let titulosHtml = "";
+    dayEventosOrdenados.slice(0, maxVisivelPorDia).forEach((ev) => {
+      const hue = CATEGORIA_COLORS[ev.categoria] || "";
+      titulosHtml += `<div class="calendar-day-event" style="--cat-hue:${hue}"><span class="calendar-day-event-dot"></span><span class="calendar-day-event-title">${escapeHtml(ev.titulo)}</span></div>`;
     });
-    const more = dayEventos.length > 4 ? `<div class="calendar-day-more">+${dayEventos.length - 4}</div>` : "";
+    const restantes = dayEventosOrdenados.length - maxVisivelPorDia;
+    const more = restantes > 0 ? `<div class="calendar-day-more">+${restantes} mais</div>` : "";
 
     html += `<div class="${classes.join(" ")}" data-day-key="${key}">
       <div class="calendar-day-number">${d.getDate()}</div>
-      <div>${dots}</div>
-      ${more}
+      <div class="calendar-day-events">${titulosHtml}${more}</div>
     </div>`;
   }
 
@@ -638,6 +650,7 @@ function setupForm() {
     const titulo = document.getElementById("form-titulo").value.trim();
     const inicioRaw = document.getElementById("form-inicio").value;
     const fimRaw = document.getElementById("form-fim").value;
+    const preco = document.getElementById("form-preco").value;
     const url = document.getElementById("form-url").value.trim();
     const descricao = document.getElementById("form-descricao").value.trim();
 
@@ -653,6 +666,7 @@ function setupForm() {
       data_fim: toIsoSp(fimRaw),
       fonte_id: fonteId,
       categoria: fonte.categoria,
+      preco: preco || null,
       url: url || null,
       descricao,
       status: "novo",
