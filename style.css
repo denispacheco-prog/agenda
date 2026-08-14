@@ -666,6 +666,99 @@ main {
   color: var(--muted);
 }
 
+/* Lugares view */
+
+.lugar-card {
+  border: none;
+  border-bottom: 1px solid var(--rule);
+  border-radius: 0;
+  padding: 1.1rem 0;
+  margin-bottom: 0;
+}
+
+.lugar-card:last-child {
+  border-bottom: none;
+}
+
+.lugar-card-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.3rem;
+}
+
+.lugar-subcategoria {
+  font-size: 0.78rem;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+.lugar-nome {
+  font-family: var(--font-serif);
+  margin: 0.15rem 0 0.3rem;
+  font-size: 1.1rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.lugar-nome-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.lugar-nome-btn:hover {
+  text-decoration: underline;
+}
+
+.lugar-bairro {
+  font-size: 0.78rem;
+  color: var(--muted);
+  opacity: 0.8;
+  margin-bottom: 0.3rem;
+}
+
+.lugar-card-bottom {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.4rem;
+}
+
+.lugar-contagem-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.lugar-contagem-btn:hover {
+  text-decoration: underline;
+}
+
+.lugar-contagem-btn.is-active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.lugar-site {
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-decoration: underline;
+}
+
+.lugar-site:hover {
+  color: var(--fg);
+}
+
 /* Manual add form */
 
 .form-panel {

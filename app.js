@@ -548,22 +548,109 @@ function renderFeed(container) {
   });
 }
 
+// --- rendering: lugares ---
+
+function countEventosFuturos(fonteId) {
+  const agora = new Date();
+  return state.eventos.filter((e) => {
+    return e.fonte_id === fonteId && e.status !== "descartado" && new Date(e.data_inicio) >= agora;
+  }).length;
+}
+
+function irParaListaDoLugar(fonteId) {
+  state.filtros = { categoria: "", bairro: "", fonteId };
+  state.viewMode = "lista";
+  render();
+}
+
+function lugarCardHtml(f) {
+  const topHtml = f.subcategoria
+    ? `<div class="lugar-card-top"><span class="lugar-subcategoria">${escapeHtml(f.subcategoria)}</span></div>`
+    : "";
+  const bairroHtml = f.bairro ? `<div class="lugar-bairro">${escapeHtml(f.bairro)}</div>` : "";
+  const siteHtml = f.url
+    ? `<a class="lugar-site" href="${escapeHtml(f.url)}" target="_blank" rel="noopener">site ↗</a>`
+    : "";
+  const count = countEventosFuturos(f.id);
+  const contagemLabel = count > 0
+    ? `${count} evento${count > 1 ? "s" : ""} futuro${count > 1 ? "s" : ""}`
+    : "nenhum evento futuro";
+
+  return `
+    <article class="lugar-card">
+      ${topHtml}
+      <h3 class="lugar-nome"><button type="button" class="lugar-nome-btn" data-fonte-id="${escapeHtml(f.id)}">${escapeHtml(f.nome)}</button></h3>
+      ${bairroHtml}
+      <div class="lugar-card-bottom">
+        <button type="button" class="lugar-contagem-btn${count > 0 ? " is-active" : ""}" data-fonte-id="${escapeHtml(f.id)}">${contagemLabel}</button>
+        ${siteHtml}
+      </div>
+    </article>`;
+}
+
+function renderLugares(container) {
+  const filtered = state.fontes.filter((f) => {
+    if (state.filtros.categoria && f.categoria !== state.filtros.categoria) return false;
+    if (state.filtros.bairro && f.bairro !== state.filtros.bairro) return false;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = `<p class="empty-state">nenhum lugar com esses filtros.</p>`;
+    return;
+  }
+
+  const categorias = [...new Set(filtered.map((f) => f.categoria))]
+    .sort((a, b) => (CATEGORIA_LABELS[a] || a).localeCompare(CATEGORIA_LABELS[b] || b, "pt-BR"));
+
+  let html = "";
+  categorias.forEach((cat) => {
+    const doGrupo = filtered
+      .filter((f) => f.categoria === cat)
+      .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+    html += `<h2 class="stream-date-heading">${escapeHtml(CATEGORIA_LABELS[cat] || cat)}</h2>`;
+    doGrupo.forEach((f) => { html += lugarCardHtml(f); });
+  });
+
+  container.innerHTML = html;
+
+  container.querySelectorAll(".lugar-nome-btn, .lugar-contagem-btn").forEach((btn) => {
+    btn.addEventListener("click", () => irParaListaDoLugar(btn.dataset.fonteId));
+  });
+}
+
 // --- render dispatch ---
+
+function syncFiltrosUI() {
+  const selCategoria = document.getElementById("filtro-categoria");
+  const selBairro = document.getElementById("filtro-bairro");
+  const selFonte = document.getElementById("filtro-fonte");
+  if (selCategoria) selCategoria.value = state.filtros.categoria;
+  if (selBairro) selBairro.value = state.filtros.bairro;
+  if (selFonte) selFonte.value = state.filtros.fonteId;
+}
 
 function updateActiveViewTab() {
   document.querySelectorAll(".view-tab").forEach((btn) => {
     btn.classList.toggle("is-active", btn.dataset.view === state.viewMode);
   });
   const isFeed = state.viewMode === "feed";
+  const isLugares = state.viewMode === "lugares";
   document.getElementById("filtros-eventos").hidden = isFeed;
-  document.getElementById("btn-add-evento").hidden = isFeed;
+  document.getElementById("filtro-fonte").hidden = isLugares;
+  document.getElementById("btn-add-evento").hidden = isFeed || isLugares;
 }
 
 function render() {
   updateActiveViewTab();
+  syncFiltrosUI();
   const container = document.getElementById("conteudo");
   if (state.viewMode === "feed") {
     renderFeed(container);
+    return;
+  }
+  if (state.viewMode === "lugares") {
+    renderLugares(container);
     return;
   }
   const filtered = getFilteredEventos();
