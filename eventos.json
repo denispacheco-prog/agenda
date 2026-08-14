@@ -12,6 +12,20 @@
       "status": "novo",
       "origem": "manual",
       "criado_em": "2026-08-13T16:48:09.425Z"
+    },
+    {
+      "id": "japan-house-2026-08-29-ciclo-de-manga-shaman-king-de-hiroyuki-takei",
+      "titulo": "Ciclo de Mangá // Shaman King, de Hiroyuki Takei",
+      "data_inicio": "2026-08-29T15:00:00-03:00",
+      "data_fim": null,
+      "fonte_id": "japan-house",
+      "categoria": "museu",
+      "preco": "gratis",
+      "url": "https://japanhousesp.com.br/evento/ciclo-de-manga-shaman-king-de-hiroyuki-takei/",
+      "descricao": "",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-14T21:51:48.047Z"
     }
   ]
 }
