@@ -115,6 +115,7 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
   padding: 1rem var(--page-inset);
   border-bottom: 1px solid var(--border);
@@ -123,6 +124,13 @@ textarea {
 .view-tabs {
   display: flex;
   gap: 1rem;
+}
+
+.toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .view-tab {
@@ -152,7 +160,10 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 0.9rem;
-  margin-left: auto;
+}
+
+.filters[hidden] {
+  display: none;
 }
 
 .filters select {
@@ -357,14 +368,23 @@ main {
   opacity: 0.8;
 }
 
+.event-editar,
 .event-remover {
-  margin-left: auto;
   background: none;
   border: none;
   color: var(--muted);
   font-size: 0.8rem;
   cursor: pointer;
   text-decoration: underline;
+}
+
+.event-editar {
+  margin-left: auto;
+}
+
+.event-editar:hover,
+.event-remover:hover {
+  color: var(--fg);
 }
 
 .toggle-descartados {
@@ -759,6 +779,26 @@ main {
   color: var(--fg);
 }
 
+.lugar-editar-btn,
+.lugar-remover-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.8rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.lugar-editar-btn {
+  margin-left: auto;
+}
+
+.lugar-editar-btn:hover,
+.lugar-remover-btn:hover {
+  color: var(--fg);
+}
+
 /* Manual add form */
 
 .form-panel {
@@ -813,10 +853,6 @@ main {
   .toolbar {
     flex-direction: column;
     align-items: stretch;
-  }
-
-  .filters {
-    margin-left: 0;
   }
 
   .calendar-day {

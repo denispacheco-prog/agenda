@@ -35,24 +35,27 @@
       <button class="view-tab" data-view="salvos" type="button">salvos</button>
     </div>
 
-    <div class="filters" id="filtros-eventos">
-      <select id="filtro-categoria">
-        <option value="">categoria</option>
-      </select>
-      <select id="filtro-bairro">
-        <option value="">bairro</option>
-      </select>
-      <select id="filtro-fonte">
-        <option value="">lugar</option>
-      </select>
-    </div>
+    <div class="toolbar-actions">
+      <div class="filters" id="filtros-eventos">
+        <select id="filtro-categoria">
+          <option value="">categoria</option>
+        </select>
+        <select id="filtro-bairro">
+          <option value="">bairro</option>
+        </select>
+        <select id="filtro-fonte">
+          <option value="">lugar</option>
+        </select>
+      </div>
 
-    <button id="btn-add-evento" class="btn btn-primary" type="button">+ adicionar evento</button>
+      <button id="btn-add-evento" class="btn btn-primary" type="button">+ adicionar evento</button>
+      <button id="btn-add-lugar" class="btn btn-primary" type="button" hidden>+ adicionar lugar</button>
+    </div>
   </div>
 
   <main id="app">
     <form id="form-add-evento" class="form-panel" hidden>
-      <h2>adicionar evento manualmente</h2>
+      <h2 id="form-evento-titulo">adicionar evento manualmente</h2>
 
       <div class="form-row">
         <label for="form-fonte">lugar</label>
@@ -94,8 +97,42 @@
       </div>
 
       <div class="form-actions">
-        <button type="submit" class="btn btn-primary">salvar evento</button>
+        <button type="submit" class="btn btn-primary" id="form-evento-submit-btn">salvar evento</button>
         <button type="button" id="btn-cancel-evento" class="btn">cancelar</button>
+      </div>
+    </form>
+
+    <form id="form-lugar" class="form-panel" hidden>
+      <h2 id="form-lugar-titulo">adicionar lugar</h2>
+
+      <div class="form-row">
+        <label for="form-lugar-nome">nome</label>
+        <input id="form-lugar-nome" type="text" required />
+      </div>
+
+      <div class="form-row">
+        <label for="form-lugar-categoria">categoria</label>
+        <select id="form-lugar-categoria" required></select>
+      </div>
+
+      <div class="form-row">
+        <label for="form-lugar-bairro">bairro (opcional)</label>
+        <input id="form-lugar-bairro" type="text" />
+      </div>
+
+      <div class="form-row">
+        <label for="form-lugar-subcategoria">subcategoria (opcional)</label>
+        <input id="form-lugar-subcategoria" type="text" />
+      </div>
+
+      <div class="form-row">
+        <label for="form-lugar-url">site (opcional)</label>
+        <input id="form-lugar-url" type="url" placeholder="https://..." />
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="form-lugar-submit-btn">salvar lugar</button>
+        <button type="button" id="btn-cancel-lugar" class="btn">cancelar</button>
       </div>
     </form>
 

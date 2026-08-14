@@ -40,6 +40,7 @@ function hueForVeiculo(id) {
 const THEME_KEY = "agenda:theme";
 const STATUS_KEY = "agenda:status";
 const MANUAL_EVENTOS_KEY = "agenda:eventosManuais";
+const EVENTO_EDITS_KEY = "agenda:eventoEdits";
 const FEED_SALVOS_KEY = "agenda:feedSalvos";
 
 const state = {
@@ -57,6 +58,8 @@ const state = {
   feedSalvos: [],
   feedFiltroVeiculo: "",
   feedSoSalvos: false,
+  editingEventoId: null,
+  editingFonteId: null,
 };
 
 // --- localStorage helpers ---
@@ -83,6 +86,18 @@ function loadManualEventos() {
 
 function saveManualEventos(eventos) {
   localStorage.setItem(MANUAL_EVENTOS_KEY, JSON.stringify(eventos));
+}
+
+function loadEventoEdits() {
+  try {
+    return JSON.parse(localStorage.getItem(EVENTO_EDITS_KEY)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function saveEventoEdits(edits) {
+  localStorage.setItem(EVENTO_EDITS_KEY, JSON.stringify(edits));
 }
 
 function loadFeedSalvos() {
@@ -117,6 +132,17 @@ function slugify(str) {
 function generateEventId(fonteId, dataInicioIso, titulo, existingIds) {
   const dia = dataInicioIso.slice(0, 10);
   const base = `${fonteId}-${dia}-${slugify(titulo)}`;
+  let id = base;
+  let n = 2;
+  while (existingIds.has(id)) {
+    id = `${base}-${n}`;
+    n++;
+  }
+  return id;
+}
+
+function generateFonteId(nome, existingIds) {
+  const base = slugify(nome);
   let id = base;
   let n = 2;
   while (existingIds.has(id)) {
@@ -266,6 +292,7 @@ function eventCardHtml(ev) {
         <button type="button" class="triagem-btn${ev.status === "interesse" ? " is-active" : ""}" data-status="interesse">interesse</button>
         <button type="button" class="triagem-btn${ev.status === "salvo" ? " is-active" : ""}" data-status="salvo">salvo</button>
         <button type="button" class="triagem-btn${ev.status === "descartado" ? " is-active" : ""}" data-status="descartado">descartar</button>
+        <button type="button" class="event-editar" data-edit-id="${escapeHtml(ev.id)}">editar</button>
         ${removerHtml}
       </div>
     </article>`;
@@ -283,6 +310,12 @@ function attachCardListeners(container) {
       if (confirm("remover este evento adicionado manualmente?")) {
         removeManualEvento(btn.dataset.removeId);
       }
+    });
+  });
+  container.querySelectorAll(".event-editar").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const ev = state.eventos.find((e) => e.id === btn.dataset.editId);
+      if (ev) abrirFormularioEdicaoEvento(ev);
     });
   });
 }
@@ -584,6 +617,8 @@ function lugarCardHtml(f) {
       <div class="lugar-card-bottom">
         <button type="button" class="lugar-contagem-btn${count > 0 ? " is-active" : ""}" data-fonte-id="${escapeHtml(f.id)}">${contagemLabel}</button>
         ${siteHtml}
+        <button type="button" class="lugar-editar-btn" data-fonte-id="${escapeHtml(f.id)}">editar</button>
+        <button type="button" class="lugar-remover-btn" data-fonte-id="${escapeHtml(f.id)}">remover</button>
       </div>
     </article>`;
 }
@@ -617,6 +652,150 @@ function renderLugares(container) {
   container.querySelectorAll(".lugar-nome-btn, .lugar-contagem-btn").forEach((btn) => {
     btn.addEventListener("click", () => irParaListaDoLugar(btn.dataset.fonteId));
   });
+  container.querySelectorAll(".lugar-editar-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const f = state.fontesById.get(btn.dataset.fonteId);
+      if (f) abrirFormularioEdicaoLugar(f);
+    });
+  });
+  container.querySelectorAll(".lugar-remover-btn").forEach((btn) => {
+    btn.addEventListener("click", () => removerLugar(btn.dataset.fonteId));
+  });
+}
+
+// --- lugares: adicionar / editar / remover ---
+
+function abrirFormularioNovoLugar() {
+  if (!API.isGithubConfigured()) {
+    alert('configure a sincronização com GitHub em "🔑" pra adicionar lugares.');
+    return;
+  }
+  const panel = document.getElementById("form-lugar");
+  state.editingFonteId = null;
+  panel.reset();
+  document.getElementById("form-lugar-titulo").textContent = "adicionar lugar";
+  document.getElementById("form-lugar-submit-btn").textContent = "salvar lugar";
+  panel.hidden = false;
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function abrirFormularioEdicaoLugar(f) {
+  if (!API.isGithubConfigured()) {
+    alert('configure a sincronização com GitHub em "🔑" pra editar lugares.');
+    return;
+  }
+  const panel = document.getElementById("form-lugar");
+  state.editingFonteId = f.id;
+  document.getElementById("form-lugar-nome").value = f.nome;
+  document.getElementById("form-lugar-categoria").value = f.categoria;
+  document.getElementById("form-lugar-bairro").value = f.bairro || "";
+  document.getElementById("form-lugar-subcategoria").value = f.subcategoria || "";
+  document.getElementById("form-lugar-url").value = f.url || "";
+  document.getElementById("form-lugar-titulo").textContent = "editar lugar";
+  document.getElementById("form-lugar-submit-btn").textContent = "salvar alterações";
+  panel.hidden = false;
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function fecharFormularioLugar() {
+  const panel = document.getElementById("form-lugar");
+  state.editingFonteId = null;
+  panel.reset();
+  panel.hidden = true;
+}
+
+async function removerLugar(fonteId) {
+  if (!API.isGithubConfigured()) {
+    alert('configure a sincronização com GitHub em "🔑" pra remover lugares.');
+    return;
+  }
+  const fonte = state.fontesById.get(fonteId);
+  const nome = fonte ? fonte.nome : fonteId;
+  const qtdEventos = state.eventos.filter((e) => e.fonte_id === fonteId).length;
+  const aviso = qtdEventos > 0
+    ? ` isso não apaga os ${qtdEventos} evento${qtdEventos > 1 ? "s" : ""} já cadastrado${qtdEventos > 1 ? "s" : ""} nesse lugar.`
+    : "";
+  if (!confirm(`remover "${nome}"?${aviso}`)) return;
+
+  try {
+    state.fontes = await API.removeFonteGithub(fonteId);
+  } catch (err) {
+    alert(err.message);
+    return;
+  }
+  state.fontesById = new Map(state.fontes.map((f) => [f.id, f]));
+  render();
+}
+
+function setupFormLugar() {
+  const panel = document.getElementById("form-lugar");
+  const selCategoria = document.getElementById("form-lugar-categoria");
+
+  Object.keys(CATEGORIA_LABELS)
+    .sort((a, b) => CATEGORIA_LABELS[a].localeCompare(CATEGORIA_LABELS[b], "pt-BR"))
+    .forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c;
+      opt.textContent = CATEGORIA_LABELS[c];
+      selCategoria.appendChild(opt);
+    });
+
+  document.getElementById("btn-add-lugar").addEventListener("click", abrirFormularioNovoLugar);
+  document.getElementById("btn-cancel-lugar").addEventListener("click", fecharFormularioLugar);
+
+  panel.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const nome = document.getElementById("form-lugar-nome").value.trim();
+    const categoria = selCategoria.value;
+    const bairro = document.getElementById("form-lugar-bairro").value.trim();
+    const subcategoria = document.getElementById("form-lugar-subcategoria").value.trim();
+    const url = document.getElementById("form-lugar-url").value.trim();
+
+    if (!nome || !categoria) return;
+
+    if (state.editingFonteId) {
+      const original = state.fontesById.get(state.editingFonteId);
+      const fonteAtualizada = {
+        ...original,
+        nome,
+        categoria,
+        bairro: bairro || null,
+        subcategoria: subcategoria || null,
+        url: url || null,
+      };
+      try {
+        state.fontes = await API.updateFonteGithub(fonteAtualizada);
+      } catch (err) {
+        alert(err.message);
+        return;
+      }
+    } else {
+      const existingIds = new Set(state.fontes.map((f) => f.id));
+      const novaFonte = {
+        id: generateFonteId(nome, existingIds),
+        nome,
+        categoria,
+        bairro: bairro || null,
+        latitude: null,
+        longitude: null,
+        url: url || null,
+        tipo_coleta: "manual",
+        feed_url: null,
+        subcategoria: subcategoria || null,
+      };
+      try {
+        state.fontes = await API.addFonteGithub(novaFonte);
+      } catch (err) {
+        alert(err.message);
+        return;
+      }
+    }
+
+    state.fontesById = new Map(state.fontes.map((f) => [f.id, f]));
+    fecharFormularioLugar();
+    render();
+  });
 }
 
 // --- render dispatch ---
@@ -639,6 +818,7 @@ function updateActiveViewTab() {
   document.getElementById("filtros-eventos").hidden = isFeed;
   document.getElementById("filtro-fonte").hidden = isLugares;
   document.getElementById("btn-add-evento").hidden = isFeed || isLugares;
+  document.getElementById("btn-add-lugar").hidden = !isLugares;
 }
 
 function render() {
@@ -709,6 +889,31 @@ function setupFiltros() {
   selFonte.addEventListener("change", () => { state.filtros.fonteId = selFonte.value; render(); });
 }
 
+function abrirFormularioEdicaoEvento(ev) {
+  const panel = document.getElementById("form-add-evento");
+  state.editingEventoId = ev.id;
+  document.getElementById("form-fonte").value = ev.fonte_id;
+  document.getElementById("form-titulo").value = ev.titulo;
+  document.getElementById("form-inicio").value = ev.data_inicio ? ev.data_inicio.slice(0, 16) : "";
+  document.getElementById("form-fim").value = ev.data_fim ? ev.data_fim.slice(0, 16) : "";
+  document.getElementById("form-preco").value = ev.preco || "";
+  document.getElementById("form-url").value = ev.url || "";
+  document.getElementById("form-descricao").value = ev.descricao || "";
+  document.getElementById("form-evento-titulo").textContent = "editar evento";
+  document.getElementById("form-evento-submit-btn").textContent = "salvar alterações";
+  panel.hidden = false;
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function fecharFormularioEvento() {
+  const panel = document.getElementById("form-add-evento");
+  state.editingEventoId = null;
+  panel.reset();
+  panel.hidden = true;
+  document.getElementById("form-evento-titulo").textContent = "adicionar evento manualmente";
+  document.getElementById("form-evento-submit-btn").textContent = "salvar evento";
+}
+
 function setupForm() {
   const panel = document.getElementById("form-add-evento");
   const formFonte = document.getElementById("form-fonte");
@@ -721,13 +926,18 @@ function setupForm() {
   });
 
   document.getElementById("btn-add-evento").addEventListener("click", () => {
-    panel.hidden = !panel.hidden;
+    if (panel.hidden) {
+      state.editingEventoId = null;
+      panel.reset();
+      document.getElementById("form-evento-titulo").textContent = "adicionar evento manualmente";
+      document.getElementById("form-evento-submit-btn").textContent = "salvar evento";
+      panel.hidden = false;
+    } else {
+      fecharFormularioEvento();
+    }
   });
 
-  document.getElementById("btn-cancel-evento").addEventListener("click", () => {
-    panel.reset();
-    panel.hidden = true;
-  });
+  document.getElementById("btn-cancel-evento").addEventListener("click", fecharFormularioEvento);
 
   panel.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -744,6 +954,57 @@ function setupForm() {
     if (!fonte || !titulo || !inicioRaw) return;
 
     const dataInicio = toIsoSp(inicioRaw);
+
+    if (state.editingEventoId) {
+      const id = state.editingEventoId;
+      const original = state.eventos.find((ev) => ev.id === id);
+      const eventoAtualizado = {
+        ...original,
+        titulo,
+        data_inicio: dataInicio,
+        data_fim: toIsoSp(fimRaw),
+        fonte_id: fonteId,
+        categoria: fonte.categoria,
+        preco: preco || null,
+        url: url || null,
+        descricao,
+      };
+
+      if (API.isGithubConfigured()) {
+        try {
+          state.eventos = await API.updateEventoGithub(eventoAtualizado);
+        } catch (err) {
+          alert(err.message);
+          return;
+        }
+      } else {
+        const manuais = loadManualEventos();
+        const idxManual = manuais.findIndex((m) => m.id === id);
+        if (idxManual !== -1) {
+          manuais[idxManual] = eventoAtualizado;
+          saveManualEventos(manuais);
+        } else {
+          const edits = loadEventoEdits();
+          edits[id] = {
+            titulo,
+            data_inicio: dataInicio,
+            data_fim: toIsoSp(fimRaw),
+            fonte_id: fonteId,
+            categoria: fonte.categoria,
+            preco: preco || null,
+            url: url || null,
+            descricao,
+          };
+          saveEventoEdits(edits);
+        }
+        state.eventos = state.eventos.map((ev) => (ev.id === id ? eventoAtualizado : ev));
+      }
+
+      fecharFormularioEvento();
+      render();
+      return;
+    }
+
     const existingIds = new Set(state.eventos.map((ev) => ev.id));
 
     const novoEvento = {
@@ -803,8 +1064,10 @@ async function loadEventosState() {
   const eventosBase = await API.loadEventos();
   const manuais = loadManualEventos();
   const statusOverlay = loadStatusOverlay();
+  const editsOverlay = loadEventoEdits();
   state.eventos = [...eventosBase, ...manuais].map((e) => ({
     ...e,
+    ...(editsOverlay[e.id] || {}),
     status: statusOverlay[e.id] || e.status || "novo",
   }));
 }
@@ -856,6 +1119,7 @@ async function init() {
     setupFiltros();
     setupViewTabs();
     setupForm();
+    setupFormLugar();
   } catch (err) {
     document.getElementById("conteudo").innerHTML =
       `<p class="empty-state">não foi possível carregar a Agenda: ${escapeHtml(err.message)}</p>`;
