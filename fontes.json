@@ -1039,6 +1039,19 @@
       "tipo_coleta": "manual",
       "feed_url": null,
       "subcategoria": "Japonesa"
+    },
+    {
+      "id": "escola-no-cinema",
+      "nome": "Escola no Cinema",
+      "categoria": "clube",
+      "bairro": "Consolação",
+      "latitude": null,
+      "longitude": null,
+      "url": "https://www.escolanocinema.com.br/",
+      "instagram": null,
+      "tipo_coleta": "manual",
+      "feed_url": null,
+      "subcategoria": null
     }
   ]
 }
