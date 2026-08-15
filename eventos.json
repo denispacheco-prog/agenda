@@ -8,10 +8,11 @@
       "fonte_id": "bodogami",
       "categoria": "jogos",
       "url": "https://www.instagram.com/p/DbYjSVpFq3z/",
-      "descricao": "Inscrição está inclusa no Couvert Lúdico de R$28, taxa cobrada para jogar a vontade no restaurante, de segunda a sexta-feira.",
+      "descricao": "Couvert Lúdico de R$28, taxa cobrada para jogar a vontade no restaurante, de segunda a sexta-feira.",
       "status": "novo",
       "origem": "manual",
-      "criado_em": "2026-08-13T16:48:09.425Z"
+      "criado_em": "2026-08-13T16:48:09.425Z",
+      "preco": "pago"
     },
     {
       "id": "japan-house-2026-08-29-ciclo-de-manga-shaman-king-de-hiroyuki-takei",
