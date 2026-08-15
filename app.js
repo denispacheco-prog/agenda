@@ -58,7 +58,6 @@ const state = {
   feedSalvos: [],
   feedFiltroVeiculo: "",
   feedSoSalvos: false,
-  feedFiltrosVisiveis: false,
   editingEventoId: null,
   editingFonteId: null,
 };
@@ -520,37 +519,65 @@ function feedItemHtml(item, salvosSet) {
     </article>`;
 }
 
+function renderFeedSidebar() {
+  const list = document.getElementById("feed-sidebar-list");
+  if (!list) return;
+
+  const veiculosFeed = state.veiculos.filter((v) => v.tipo_coleta === "feed");
+  const todosAtivo = !state.feedFiltroVeiculo;
+
+  let html = `
+    <li><button type="button" class="sidebar-feed-btn sidebar-feed-btn--all${todosAtivo ? " is-active" : ""}" data-veiculo-id="">todos os veículos</button></li>`;
+  veiculosFeed.forEach((v) => {
+    const hue = hueForVeiculo(v.id);
+    const ativo = state.feedFiltroVeiculo === v.id;
+    html += `
+    <li><button type="button" class="sidebar-feed-btn${ativo ? " is-active" : ""}" data-veiculo-id="${escapeHtml(v.id)}" style="--cat-hue:${hue}"><span class="sidebar-feed-dot"></span><span class="sidebar-feed-name">${escapeHtml(v.nome)}</span></button></li>`;
+  });
+
+  list.innerHTML = html;
+
+  list.querySelectorAll(".sidebar-feed-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.feedFiltroVeiculo = btn.dataset.veiculoId;
+      fecharFeedSidebar();
+      render();
+    });
+  });
+}
+
+function abrirFeedSidebar() {
+  document.getElementById("feed-sidebar").classList.add("is-open");
+  document.getElementById("feed-sidebar").setAttribute("aria-hidden", "false");
+  document.getElementById("feed-sidebar-toggle").classList.add("is-open");
+  document.getElementById("feed-sidebar-toggle").setAttribute("aria-expanded", "true");
+}
+
+function fecharFeedSidebar() {
+  document.getElementById("feed-sidebar").classList.remove("is-open");
+  document.getElementById("feed-sidebar").setAttribute("aria-hidden", "true");
+  document.getElementById("feed-sidebar-toggle").classList.remove("is-open");
+  document.getElementById("feed-sidebar-toggle").setAttribute("aria-expanded", "false");
+}
+
+function setupFeedSidebar() {
+  document.getElementById("feed-sidebar-toggle").addEventListener("click", () => {
+    const aberta = document.getElementById("feed-sidebar").classList.contains("is-open");
+    if (aberta) fecharFeedSidebar();
+    else abrirFeedSidebar();
+  });
+  document.getElementById("feed-saved-toggle").addEventListener("click", () => {
+    state.feedSoSalvos = !state.feedSoSalvos;
+    render();
+  });
+}
+
 function renderFeed(container) {
   const salvosSet = new Set(state.feedSalvos.map((i) => i.id));
   const source = state.feedSoSalvos ? state.feedSalvos : state.feedItens;
   const filtered = filterFeedItens(source).sort((a, b) => b.publicado_em.localeCompare(a.publicado_em));
 
-  const veiculosFeed = state.veiculos.filter((v) => v.tipo_coleta === "feed");
   const veiculosManuais = state.veiculos.filter((v) => v.tipo_coleta !== "feed");
-
-  const filtrosResumo = [];
-  if (state.feedFiltroVeiculo) {
-    const v = state.veiculosById.get(state.feedFiltroVeiculo);
-    filtrosResumo.push(v ? v.nome : state.feedFiltroVeiculo);
-  }
-  if (state.feedSoSalvos) filtrosResumo.push("só salvos");
-
-  const toggleFiltrosLabel = state.feedFiltrosVisiveis
-    ? "ocultar filtros"
-    : filtrosResumo.length > 0
-    ? `filtros: ${filtrosResumo.join(", ")}`
-    : "filtros";
-
-  const filterBarHtml = `
-    <button type="button" class="toggle-descartados" id="feed-toggle-filtros">${escapeHtml(toggleFiltrosLabel)}</button>
-    ${state.feedFiltrosVisiveis ? `
-    <div class="feed-filterbar">
-      <select id="feed-filtro-veiculo">
-        <option value="">todos os veículos</option>
-        ${veiculosFeed.map((v) => `<option value="${escapeHtml(v.id)}"${state.feedFiltroVeiculo === v.id ? " selected" : ""}>${escapeHtml(v.nome)}</option>`).join("")}
-      </select>
-      <button type="button" class="btn${state.feedSoSalvos ? " btn-primary" : ""}" id="feed-toggle-salvos">${state.feedSoSalvos ? "mostrando só salvos" : "só salvos"}</button>
-    </div>` : ""}`;
 
   let itemsHtml = "";
   if (filtered.length === 0) {
@@ -578,26 +605,10 @@ function renderFeed(container) {
       </div>`;
   }
 
-  container.innerHTML = filterBarHtml + itemsHtml + linksHtml;
+  container.innerHTML = itemsHtml + linksHtml;
 
-  document.getElementById("feed-toggle-filtros").addEventListener("click", () => {
-    state.feedFiltrosVisiveis = !state.feedFiltrosVisiveis;
-    render();
-  });
-  const selFiltroVeiculo = document.getElementById("feed-filtro-veiculo");
-  if (selFiltroVeiculo) {
-    selFiltroVeiculo.addEventListener("change", (e) => {
-      state.feedFiltroVeiculo = e.target.value;
-      render();
-    });
-  }
-  const btnToggleSalvos = document.getElementById("feed-toggle-salvos");
-  if (btnToggleSalvos) {
-    btnToggleSalvos.addEventListener("click", () => {
-      state.feedSoSalvos = !state.feedSoSalvos;
-      render();
-    });
-  }
+  renderFeedSidebar();
+
   container.querySelectorAll(".feed-save-btn[data-feed-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.feedId;
@@ -850,6 +861,12 @@ function updateActiveViewTab() {
   document.getElementById("filtro-fonte").hidden = isLugares;
   document.getElementById("btn-add-evento").hidden = isFeed || isLugares;
   document.getElementById("btn-add-lugar").hidden = !isLugares;
+
+  document.getElementById("feed-sidebar-toggle").hidden = !isFeed;
+  const savedToggle = document.getElementById("feed-saved-toggle");
+  savedToggle.hidden = !isFeed;
+  savedToggle.classList.toggle("is-active", state.feedSoSalvos);
+  if (!isFeed) fecharFeedSidebar();
 }
 
 function render() {
@@ -1151,6 +1168,7 @@ async function init() {
     setupViewTabs();
     setupForm();
     setupFormLugar();
+    setupFeedSidebar();
   } catch (err) {
     document.getElementById("conteudo").innerHTML =
       `<p class="empty-state">não foi possível carregar a Agenda: ${escapeHtml(err.message)}</p>`;
