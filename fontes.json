@@ -1052,6 +1052,19 @@
       "tipo_coleta": "manual",
       "feed_url": null,
       "subcategoria": null
+    },
+    {
+      "id": "aic-academia-internacional-de-cinema",
+      "nome": "AIC - Academia Internacional de Cinema",
+      "categoria": "curso",
+      "bairro": "Higienópolis",
+      "latitude": null,
+      "longitude": null,
+      "url": "https://www.aicinema.com.br/sp/",
+      "instagram": "https://www.instagram.com/aicinema/",
+      "tipo_coleta": "manual",
+      "feed_url": null,
+      "subcategoria": null
     }
   ]
 }
