@@ -66,6 +66,7 @@
       <button id="btn-toggle-salvos" class="btn" type="button" hidden>★ salvos</button>
       <button id="btn-add-evento" class="btn btn-primary" type="button">+ adicionar evento</button>
       <button id="btn-add-lugar" class="btn btn-primary" type="button" hidden>+ adicionar lugar</button>
+      <button id="btn-manage-categorias" class="btn" type="button" hidden>editar categorias</button>
     </div>
   </div>
 
@@ -156,6 +157,27 @@
         <button type="button" id="btn-cancel-lugar" class="btn">cancelar</button>
       </div>
     </form>
+
+    <div id="form-categorias" class="form-panel" hidden>
+      <h2>editar categorias</h2>
+
+      <ul id="categorias-list" class="categorias-list"></ul>
+
+      <form id="form-categoria-add" class="categoria-add-form">
+        <div class="form-row">
+          <label for="form-categoria-nome">nova categoria</label>
+          <input id="form-categoria-nome" type="text" placeholder="nome" required />
+        </div>
+        <div class="categoria-add-row">
+          <input id="form-categoria-cor" type="color" value="#4c6ef5" title="cor da categoria" />
+          <button type="submit" class="btn btn-primary">adicionar</button>
+        </div>
+      </form>
+
+      <div class="form-actions">
+        <button type="button" id="btn-fechar-categorias" class="btn">fechar</button>
+      </div>
+    </div>
 
     <div id="conteudo"></div>
   </main>

@@ -1,28 +1,12 @@
-const CATEGORIA_LABELS = {
-  cinema: "Cinema",
-  museu: "Museu",
-  livraria: "Livraria",
-  curso: "Curso",
-  feira: "Feira",
-  show: "Show",
-  balada: "Balada",
-  clube: "Clube",
-  restaurante: "Restaurante",
-  jogos: "Jogos",
-};
+function categoriaLabel(id) {
+  const c = state.categoriasById.get(id);
+  return c ? c.label : id;
+}
 
-const CATEGORIA_COLORS = {
-  cinema: "#e0575b",
-  museu: "#9b59b6",
-  livraria: "#d9822b",
-  curso: "#2f9e44",
-  feira: "#f0b429",
-  show: "#4c6ef5",
-  balada: "#e64980",
-  clube: "#15aabf",
-  restaurante: "#c2410c",
-  jogos: "#0ca678",
-};
+function categoriaColor(id) {
+  const c = state.categoriasById.get(id);
+  return c ? c.cor : "";
+}
 
 const PRECO_LABELS = {
   gratis: "grátis",
@@ -44,6 +28,8 @@ const EVENTO_EDITS_KEY = "agenda:eventoEdits";
 const FEED_SALVOS_KEY = "agenda:feedSalvos";
 
 const state = {
+  categorias: [],
+  categoriasById: new Map(),
   fontes: [],
   fontesById: new Map(),
   eventos: [],
@@ -144,6 +130,17 @@ function generateEventId(fonteId, dataInicioIso, titulo, existingIds) {
 
 function generateFonteId(nome, existingIds) {
   const base = slugify(nome);
+  let id = base;
+  let n = 2;
+  while (existingIds.has(id)) {
+    id = `${base}-${n}`;
+    n++;
+  }
+  return id;
+}
+
+function generateCategoriaId(label, existingIds) {
+  const base = slugify(label);
   let id = base;
   let n = 2;
   while (existingIds.has(id)) {
@@ -265,9 +262,9 @@ function countHiddenDescartados() {
 
 function eventCardHtml(ev) {
   const fonte = state.fontesById.get(ev.fonte_id);
-  const hue = CATEGORIA_COLORS[ev.categoria] || "";
+  const hue = categoriaColor(ev.categoria);
   const hora = new Date(ev.data_inicio).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
-  const catLabel = CATEGORIA_LABELS[ev.categoria] || ev.categoria;
+  const catLabel = categoriaLabel(ev.categoria);
   const precoTagHtml = ev.preco && PRECO_LABELS[ev.preco]
     ? `<span class="event-tag event-tag--${escapeHtml(ev.preco)}">${escapeHtml(PRECO_LABELS[ev.preco])}</span>`
     : "";
@@ -444,7 +441,7 @@ function renderCalendario(container, eventos) {
     const dayEventosOrdenados = [...dayEventos].sort((a, b) => a.data_inicio.localeCompare(b.data_inicio));
     let titulosHtml = "";
     dayEventosOrdenados.slice(0, maxVisivelPorDia).forEach((ev) => {
-      const hue = CATEGORIA_COLORS[ev.categoria] || "";
+      const hue = categoriaColor(ev.categoria);
       titulosHtml += `<div class="calendar-day-event" style="--cat-hue:${hue}"><span class="calendar-day-event-dot"></span><span class="calendar-day-event-title">${escapeHtml(ev.titulo)}</span></div>`;
     });
     const restantes = dayEventosOrdenados.length - maxVisivelPorDia;
@@ -635,7 +632,7 @@ function irParaListaDoLugar(fonteId) {
 }
 
 function lugarCardHtml(f) {
-  const hue = CATEGORIA_COLORS[f.categoria] || "";
+  const hue = categoriaColor(f.categoria);
   const subcategoriaHtml = f.subcategoria
     ? `<div class="lugar-subcategoria">${escapeHtml(f.subcategoria)}</div>`
     : "";
@@ -681,14 +678,14 @@ function renderLugares(container) {
   }
 
   const categorias = [...new Set(filtered.map((f) => f.categoria))]
-    .sort((a, b) => (CATEGORIA_LABELS[a] || a).localeCompare(CATEGORIA_LABELS[b] || b, "pt-BR"));
+    .sort((a, b) => categoriaLabel(a).localeCompare(categoriaLabel(b), "pt-BR"));
 
   let html = "";
   categorias.forEach((cat) => {
     const doGrupo = filtered
       .filter((f) => f.categoria === cat)
       .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-    html += `<h2 class="stream-date-heading">${escapeHtml(CATEGORIA_LABELS[cat] || cat)}</h2>`;
+    html += `<h2 class="stream-date-heading">${escapeHtml(categoriaLabel(cat))}</h2>`;
     html += `<div class="lugares-grid">`;
     doGrupo.forEach((f) => { html += lugarCardHtml(f); });
     html += `</div>`;
@@ -712,6 +709,20 @@ function renderLugares(container) {
 
 // --- lugares: adicionar / editar / remover ---
 
+function popularSelectCategorias(select) {
+  const valorAtual = select.value;
+  select.innerHTML = "";
+  [...state.categorias]
+    .sort((a, b) => a.label.localeCompare(b.label, "pt-BR"))
+    .forEach((c) => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.label;
+      select.appendChild(opt);
+    });
+  select.value = valorAtual;
+}
+
 function abrirFormularioNovoLugar() {
   if (!API.isGithubConfigured()) {
     alert('configure a sincronização com GitHub em "🔑" pra adicionar lugares.');
@@ -720,6 +731,7 @@ function abrirFormularioNovoLugar() {
   const panel = document.getElementById("form-lugar");
   state.editingFonteId = null;
   panel.reset();
+  popularSelectCategorias(document.getElementById("form-lugar-categoria"));
   document.getElementById("form-lugar-titulo").textContent = "adicionar lugar";
   document.getElementById("form-lugar-submit-btn").textContent = "salvar lugar";
   panel.hidden = false;
@@ -734,6 +746,7 @@ function abrirFormularioEdicaoLugar(f) {
   const panel = document.getElementById("form-lugar");
   state.editingFonteId = f.id;
   document.getElementById("form-lugar-nome").value = f.nome;
+  popularSelectCategorias(document.getElementById("form-lugar-categoria"));
   document.getElementById("form-lugar-categoria").value = f.categoria;
   document.getElementById("form-lugar-bairro").value = f.bairro || "";
   document.getElementById("form-lugar-subcategoria").value = f.subcategoria || "";
@@ -778,15 +791,6 @@ async function removerLugar(fonteId) {
 function setupFormLugar() {
   const panel = document.getElementById("form-lugar");
   const selCategoria = document.getElementById("form-lugar-categoria");
-
-  Object.keys(CATEGORIA_LABELS)
-    .sort((a, b) => CATEGORIA_LABELS[a].localeCompare(CATEGORIA_LABELS[b], "pt-BR"))
-    .forEach((c) => {
-      const opt = document.createElement("option");
-      opt.value = c;
-      opt.textContent = CATEGORIA_LABELS[c];
-      selCategoria.appendChild(opt);
-    });
 
   document.getElementById("btn-add-lugar").addEventListener("click", abrirFormularioNovoLugar);
   document.getElementById("btn-cancel-lugar").addEventListener("click", fecharFormularioLugar);
@@ -849,6 +853,105 @@ function setupFormLugar() {
   });
 }
 
+// --- categorias: gerenciar (adicionar / remover) ---
+
+function contarUsosCategoria(categoriaId) {
+  const lugares = state.fontes.filter((f) => f.categoria === categoriaId).length;
+  const eventos = state.eventos.filter((e) => e.categoria === categoriaId).length;
+  return { lugares, eventos };
+}
+
+function categoriaRowHtml(c) {
+  const { lugares, eventos } = contarUsosCategoria(c.id);
+  const usoHtml = lugares > 0 || eventos > 0
+    ? `<span class="categoria-uso">${lugares} lugar${lugares !== 1 ? "es" : ""}, ${eventos} evento${eventos !== 1 ? "s" : ""}</span>`
+    : `<span class="categoria-uso categoria-uso--vazia">sem uso</span>`;
+  return `
+    <li class="categoria-row">
+      <span class="categoria-swatch" style="--cat-hue:${escapeHtml(c.cor)}"></span>
+      <span class="categoria-row-label">${escapeHtml(c.label)}</span>
+      ${usoHtml}
+      <button type="button" class="categoria-remover-btn" data-categoria-id="${escapeHtml(c.id)}">remover</button>
+    </li>`;
+}
+
+function renderListaCategorias() {
+  const lista = document.getElementById("categorias-list");
+  const ordenadas = [...state.categorias].sort((a, b) => a.label.localeCompare(b.label, "pt-BR"));
+  lista.innerHTML = ordenadas.map(categoriaRowHtml).join("");
+  lista.querySelectorAll(".categoria-remover-btn").forEach((btn) => {
+    btn.addEventListener("click", () => removerCategoria(btn.dataset.categoriaId));
+  });
+}
+
+function abrirGerenciarCategorias() {
+  if (!API.isGithubConfigured()) {
+    alert('configure a sincronização com GitHub em "🔑" pra editar categorias.');
+    return;
+  }
+  renderListaCategorias();
+  const panel = document.getElementById("form-categorias");
+  panel.hidden = false;
+  panel.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function fecharGerenciarCategorias() {
+  document.getElementById("form-categorias").hidden = true;
+  document.getElementById("form-categoria-nome").value = "";
+  document.getElementById("form-categoria-cor").value = "#4c6ef5";
+}
+
+async function removerCategoria(categoriaId) {
+  const c = state.categoriasById.get(categoriaId);
+  const nome = c ? c.label : categoriaId;
+  const { lugares, eventos } = contarUsosCategoria(categoriaId);
+  const aviso = lugares > 0 || eventos > 0
+    ? ` ${lugares} lugar${lugares !== 1 ? "es" : ""} e ${eventos} evento${eventos !== 1 ? "s" : ""} usam essa categoria e vão continuar existindo, só sem essa classificação.`
+    : "";
+  if (!confirm(`remover a categoria "${nome}"?${aviso}`)) return;
+
+  try {
+    state.categorias = await API.removeCategoriaGithub(categoriaId);
+  } catch (err) {
+    alert(err.message);
+    return;
+  }
+  state.categoriasById = new Map(state.categorias.map((cat) => [cat.id, cat]));
+  renderListaCategorias();
+  render();
+}
+
+function setupFormCategorias() {
+  const form = document.getElementById("form-categoria-add");
+  const inputNome = document.getElementById("form-categoria-nome");
+  const inputCor = document.getElementById("form-categoria-cor");
+
+  document.getElementById("btn-manage-categorias").addEventListener("click", abrirGerenciarCategorias);
+  document.getElementById("btn-fechar-categorias").addEventListener("click", fecharGerenciarCategorias);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const label = inputNome.value.trim();
+    const cor = inputCor.value;
+    if (!label) return;
+
+    const existingIds = new Set(state.categorias.map((c) => c.id));
+    const novaCategoria = { id: generateCategoriaId(label, existingIds), label, cor };
+
+    try {
+      state.categorias = await API.addCategoriaGithub(novaCategoria);
+    } catch (err) {
+      alert(err.message);
+      return;
+    }
+    state.categoriasById = new Map(state.categorias.map((c) => [c.id, c]));
+    inputNome.value = "";
+    inputCor.value = "#4c6ef5";
+    renderListaCategorias();
+    render();
+  });
+}
+
 // --- render dispatch ---
 
 function syncFiltrosUI() {
@@ -871,6 +974,7 @@ function updateActiveViewTab() {
   document.getElementById("filtro-fonte").hidden = isLugares;
   document.getElementById("btn-add-evento").hidden = isFeed || isLugares;
   document.getElementById("btn-add-lugar").hidden = !isLugares;
+  document.getElementById("btn-manage-categorias").hidden = !isLugares;
 
   const listaSalvosToggle = document.getElementById("btn-toggle-salvos");
   listaSalvosToggle.hidden = !isLista;
@@ -882,6 +986,7 @@ function updateActiveViewTab() {
   savedToggle.hidden = !isFeed;
   savedToggle.classList.toggle("is-active", state.feedSoSalvos);
   if (!isFeed) fecharFeedSidebar();
+  if (!isLugares) fecharGerenciarCategorias();
 }
 
 function render() {
@@ -922,7 +1027,7 @@ function setupViewTabs() {
 
 function setupFiltros() {
   const categorias = [...new Set(state.fontes.map((f) => f.categoria))]
-    .sort((a, b) => (CATEGORIA_LABELS[a] || a).localeCompare(CATEGORIA_LABELS[b] || b, "pt-BR"));
+    .sort((a, b) => categoriaLabel(a).localeCompare(categoriaLabel(b), "pt-BR"));
   const bairros = [...new Set(state.fontes.map((f) => f.bairro).filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, "pt-BR"));
   const fontesOrdenadas = [...state.fontes].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
@@ -931,7 +1036,7 @@ function setupFiltros() {
   categorias.forEach((c) => {
     const opt = document.createElement("option");
     opt.value = c;
-    opt.textContent = CATEGORIA_LABELS[c] || c;
+    opt.textContent = categoriaLabel(c);
     selCategoria.appendChild(opt);
   });
 
@@ -1173,7 +1278,9 @@ async function init() {
   updateGithubConfigButton();
 
   try {
-    const fontes = await API.loadFontes();
+    const [categorias, fontes] = await Promise.all([API.loadCategorias(), API.loadFontes()]);
+    state.categorias = categorias;
+    categorias.forEach((c) => state.categoriasById.set(c.id, c));
     state.fontes = fontes;
     fontes.forEach((f) => state.fontesById.set(f.id, f));
 
@@ -1187,6 +1294,7 @@ async function init() {
     setupViewTabs();
     setupForm();
     setupFormLugar();
+    setupFormCategorias();
     setupFeedSidebar();
   } catch (err) {
     document.getElementById("conteudo").innerHTML =

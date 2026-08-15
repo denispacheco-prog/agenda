@@ -966,6 +966,84 @@ main {
   gap: 0.5rem;
 }
 
+/* Gerenciar categorias */
+
+.categorias-list {
+  list-style: none;
+  margin: 0 0 1.25rem;
+  padding: 0;
+}
+
+.categoria-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.85rem;
+}
+
+.categoria-row:last-child {
+  border-bottom: none;
+}
+
+.categoria-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: var(--cat-hue, var(--muted));
+}
+
+.categoria-row-label {
+  font-weight: 600;
+}
+
+.categoria-uso {
+  font-size: 0.72rem;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+.categoria-uso--vazia {
+  font-style: italic;
+}
+
+.categoria-remover-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.categoria-remover-btn:hover {
+  color: var(--fg);
+}
+
+.categoria-add-form .form-row {
+  margin-bottom: 0.5rem;
+}
+
+.categoria-add-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.categoria-add-row input[type="color"] {
+  width: 2.25rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: none;
+  cursor: pointer;
+}
+
 @media (max-width: 600px) {
   .toolbar {
     flex-direction: column;

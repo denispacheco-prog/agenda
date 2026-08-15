@@ -9,6 +9,7 @@ const GITHUB_BRANCH = "main";
 const EVENTOS_PATH = "eventos.json";
 const FEED_SALVOS_PATH = "feed-salvos.json";
 const FONTES_PATH = "fontes.json";
+const CATEGORIAS_PATH = "categorias.json";
 const TOKEN_STORAGE_KEY = "agenda:githubToken";
 
 function utf8ToBase64(str) {
@@ -98,6 +99,11 @@ const API = (() => {
   async function loadFeed() {
     const data = await fetchJson("feed.json");
     return data.itens;
+  }
+
+  async function loadCategorias() {
+    const data = await fetchJson("categorias.json");
+    return data.categorias;
   }
 
   function isGithubConfigured() {
@@ -202,6 +208,34 @@ const API = (() => {
     return filtered;
   }
 
+  async function addCategoriaGithub(categoria) {
+    const { data, sha } = await ghGetFile(CATEGORIAS_PATH);
+    const categorias = (data && data.categorias) || [];
+
+    if (categorias.some((c) => c.id === categoria.id)) {
+      let n = 2;
+      let novoId = `${categoria.id}-${n}`;
+      while (categorias.some((c) => c.id === novoId)) {
+        n++;
+        novoId = `${categoria.id}-${n}`;
+      }
+      categoria = { ...categoria, id: novoId };
+    }
+
+    categorias.push(categoria);
+    await ghPutFile(CATEGORIAS_PATH, { categorias }, sha, `Adiciona categoria: ${categoria.label}`);
+    return categorias;
+  }
+
+  async function removeCategoriaGithub(categoriaId) {
+    const { data, sha } = await ghGetFile(CATEGORIAS_PATH);
+    const categorias = (data && data.categorias) || [];
+    const target = categorias.find((c) => c.id === categoriaId);
+    const filtered = categorias.filter((c) => c.id !== categoriaId);
+    await ghPutFile(CATEGORIAS_PATH, { categorias: filtered }, sha, `Remove categoria${target ? ": " + target.label : ""}`);
+    return filtered;
+  }
+
   async function loadFeedSalvosGithub() {
     const { data } = await ghGetFile(FEED_SALVOS_PATH);
     return (data && data.itens) || [];
@@ -230,6 +264,7 @@ const API = (() => {
     loadEventos,
     loadVeiculos,
     loadFeed,
+    loadCategorias,
     isGithubConfigured,
     configureGithubToken,
     loadEventosGithub,
@@ -240,6 +275,8 @@ const API = (() => {
     addFonteGithub,
     updateFonteGithub,
     removeFonteGithub,
+    addCategoriaGithub,
+    removeCategoriaGithub,
     loadFeedSalvosGithub,
     saveFeedItemGithub,
     removeFeedItemGithub,
