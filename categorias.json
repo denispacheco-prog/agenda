@@ -1,14 +1,49 @@
 {
   "categorias": [
-    { "id": "cinema", "label": "Cinema", "cor": "#e0575b" },
-    { "id": "museu", "label": "Museu", "cor": "#9b59b6" },
-    { "id": "livraria", "label": "Livraria", "cor": "#d9822b" },
-    { "id": "curso", "label": "Curso", "cor": "#2f9e44" },
-    { "id": "feira", "label": "Feira", "cor": "#f0b429" },
-    { "id": "show", "label": "Show", "cor": "#4c6ef5" },
-    { "id": "balada", "label": "Balada", "cor": "#e64980" },
-    { "id": "clube", "label": "Clube", "cor": "#15aabf" },
-    { "id": "restaurante", "label": "Restaurante", "cor": "#c2410c" },
-    { "id": "jogos", "label": "Jogos", "cor": "#0ca678" }
+    {
+      "id": "cinema",
+      "label": "Cinema",
+      "cor": "#e0575b"
+    },
+    {
+      "id": "museu",
+      "label": "Museu",
+      "cor": "#9b59b6"
+    },
+    {
+      "id": "livraria",
+      "label": "Livraria",
+      "cor": "#d9822b"
+    },
+    {
+      "id": "curso",
+      "label": "Curso",
+      "cor": "#2f9e44"
+    },
+    {
+      "id": "feira",
+      "label": "Feira",
+      "cor": "#f0b429"
+    },
+    {
+      "id": "show",
+      "label": "Show",
+      "cor": "#4c6ef5"
+    },
+    {
+      "id": "balada",
+      "label": "Balada",
+      "cor": "#e64980"
+    },
+    {
+      "id": "restaurante",
+      "label": "Restaurante",
+      "cor": "#c2410c"
+    },
+    {
+      "id": "jogos",
+      "label": "Jogos",
+      "cor": "#0ca678"
+    }
   ]
 }
