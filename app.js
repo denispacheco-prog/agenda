@@ -58,6 +58,7 @@ const state = {
   feedSalvos: [],
   feedFiltroVeiculo: "",
   feedSoSalvos: false,
+  feedFiltrosVisiveis: false,
   editingEventoId: null,
   editingFonteId: null,
 };
@@ -527,14 +528,29 @@ function renderFeed(container) {
   const veiculosFeed = state.veiculos.filter((v) => v.tipo_coleta === "feed");
   const veiculosManuais = state.veiculos.filter((v) => v.tipo_coleta !== "feed");
 
+  const filtrosResumo = [];
+  if (state.feedFiltroVeiculo) {
+    const v = state.veiculosById.get(state.feedFiltroVeiculo);
+    filtrosResumo.push(v ? v.nome : state.feedFiltroVeiculo);
+  }
+  if (state.feedSoSalvos) filtrosResumo.push("só salvos");
+
+  const toggleFiltrosLabel = state.feedFiltrosVisiveis
+    ? "ocultar filtros"
+    : filtrosResumo.length > 0
+    ? `filtros: ${filtrosResumo.join(", ")}`
+    : "filtros";
+
   const filterBarHtml = `
+    <button type="button" class="toggle-descartados" id="feed-toggle-filtros">${escapeHtml(toggleFiltrosLabel)}</button>
+    ${state.feedFiltrosVisiveis ? `
     <div class="feed-filterbar">
       <select id="feed-filtro-veiculo">
         <option value="">todos os veículos</option>
         ${veiculosFeed.map((v) => `<option value="${escapeHtml(v.id)}"${state.feedFiltroVeiculo === v.id ? " selected" : ""}>${escapeHtml(v.nome)}</option>`).join("")}
       </select>
       <button type="button" class="btn${state.feedSoSalvos ? " btn-primary" : ""}" id="feed-toggle-salvos">${state.feedSoSalvos ? "mostrando só salvos" : "só salvos"}</button>
-    </div>`;
+    </div>` : ""}`;
 
   let itemsHtml = "";
   if (filtered.length === 0) {
@@ -564,14 +580,24 @@ function renderFeed(container) {
 
   container.innerHTML = filterBarHtml + itemsHtml + linksHtml;
 
-  document.getElementById("feed-filtro-veiculo").addEventListener("change", (e) => {
-    state.feedFiltroVeiculo = e.target.value;
+  document.getElementById("feed-toggle-filtros").addEventListener("click", () => {
+    state.feedFiltrosVisiveis = !state.feedFiltrosVisiveis;
     render();
   });
-  document.getElementById("feed-toggle-salvos").addEventListener("click", () => {
-    state.feedSoSalvos = !state.feedSoSalvos;
-    render();
-  });
+  const selFiltroVeiculo = document.getElementById("feed-filtro-veiculo");
+  if (selFiltroVeiculo) {
+    selFiltroVeiculo.addEventListener("change", (e) => {
+      state.feedFiltroVeiculo = e.target.value;
+      render();
+    });
+  }
+  const btnToggleSalvos = document.getElementById("feed-toggle-salvos");
+  if (btnToggleSalvos) {
+    btnToggleSalvos.addEventListener("click", () => {
+      state.feedSoSalvos = !state.feedSoSalvos;
+      render();
+    });
+  }
   container.querySelectorAll(".feed-save-btn[data-feed-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const id = btn.dataset.feedId;
@@ -597,8 +623,9 @@ function irParaListaDoLugar(fonteId) {
 }
 
 function lugarCardHtml(f) {
-  const topHtml = f.subcategoria
-    ? `<div class="lugar-card-top"><span class="lugar-subcategoria">${escapeHtml(f.subcategoria)}</span></div>`
+  const hue = CATEGORIA_COLORS[f.categoria] || "";
+  const subcategoriaHtml = f.subcategoria
+    ? `<div class="lugar-subcategoria">${escapeHtml(f.subcategoria)}</div>`
     : "";
   const bairroHtml = f.bairro ? `<div class="lugar-bairro">${escapeHtml(f.bairro)}</div>` : "";
   const siteHtml = f.url
@@ -610,13 +637,15 @@ function lugarCardHtml(f) {
     : "nenhum evento futuro";
 
   return `
-    <article class="lugar-card">
-      ${topHtml}
+    <article class="lugar-card" style="--cat-hue:${hue}">
+      ${subcategoriaHtml}
       <h3 class="lugar-nome"><button type="button" class="lugar-nome-btn" data-fonte-id="${escapeHtml(f.id)}">${escapeHtml(f.nome)}</button></h3>
       ${bairroHtml}
       <div class="lugar-card-bottom">
         <button type="button" class="lugar-contagem-btn${count > 0 ? " is-active" : ""}" data-fonte-id="${escapeHtml(f.id)}">${contagemLabel}</button>
         ${siteHtml}
+      </div>
+      <div class="lugar-card-actions">
         <button type="button" class="lugar-editar-btn" data-fonte-id="${escapeHtml(f.id)}">editar</button>
         <button type="button" class="lugar-remover-btn" data-fonte-id="${escapeHtml(f.id)}">remover</button>
       </div>
@@ -644,7 +673,9 @@ function renderLugares(container) {
       .filter((f) => f.categoria === cat)
       .sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
     html += `<h2 class="stream-date-heading">${escapeHtml(CATEGORIA_LABELS[cat] || cat)}</h2>`;
+    html += `<div class="lugares-grid">`;
     doGrupo.forEach((f) => { html += lugarCardHtml(f); });
+    html += `</div>`;
   });
 
   container.innerHTML = html;

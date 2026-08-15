@@ -686,38 +686,43 @@ main {
   color: var(--muted);
 }
 
-/* Lugares view */
+/* Lugares view: catálogo em grid, no espírito do modo mosaico do Reader */
+
+.lugares-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 0 0 2rem;
+}
 
 .lugar-card {
-  border: none;
-  border-bottom: 1px solid var(--rule);
-  border-radius: 0;
-  padding: 1.1rem 0;
-  margin-bottom: 0;
-}
-
-.lugar-card:last-child {
-  border-bottom: none;
-}
-
-.lugar-card-top {
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0.5rem;
-  margin-bottom: 0.3rem;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cat-hue, var(--border));
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  background: color-mix(in srgb, var(--fg) 2%, var(--bg));
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.lugar-card:hover {
+  background: color-mix(in srgb, var(--fg) 5%, var(--bg));
 }
 
 .lugar-subcategoria {
-  font-size: 0.78rem;
-  color: var(--muted);
-  opacity: 0.8;
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: color-mix(in srgb, var(--cat-hue, var(--muted)) 75%, var(--muted));
+  margin-bottom: 0.35rem;
 }
 
 .lugar-nome {
   font-family: var(--font-serif);
-  margin: 0.15rem 0 0.3rem;
-  font-size: 1.1rem;
+  margin: 0 0 0.3rem;
+  font-size: 1.05rem;
   line-height: 1.3;
   font-weight: 600;
 }
@@ -737,25 +742,27 @@ main {
 }
 
 .lugar-bairro {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   color: var(--muted);
   opacity: 0.8;
-  margin-bottom: 0.3rem;
+  margin-bottom: 0.5rem;
 }
 
 .lugar-card-bottom {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.9rem;
-  margin-top: 0.4rem;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  margin-top: auto;
+  padding-top: 0.5rem;
 }
 
 .lugar-contagem-btn {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--muted);
   cursor: pointer;
 }
@@ -770,7 +777,7 @@ main {
 }
 
 .lugar-site {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--muted);
   text-decoration: underline;
 }
@@ -779,24 +786,34 @@ main {
   color: var(--fg);
 }
 
+.lugar-card-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
+}
+
 .lugar-editar-btn,
 .lugar-remover-btn {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--muted);
   cursor: pointer;
   text-decoration: underline;
 }
 
-.lugar-editar-btn {
-  margin-left: auto;
-}
-
 .lugar-editar-btn:hover,
 .lugar-remover-btn:hover {
   color: var(--fg);
+}
+
+@media (max-width: 480px) {
+  .lugares-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Manual add form */
