@@ -44,6 +44,11 @@
       "id": "jogos",
       "label": "Jogos",
       "cor": "#0ca678"
+    },
+    {
+      "id": "biblioteca",
+      "label": "Biblioteca",
+      "cor": "#8000ff"
     }
   ]
 }
