@@ -55,6 +55,20 @@
       "status": "novo",
       "origem": "manual",
       "criado_em": "2026-08-15T18:53:50.342Z"
+    },
+    {
+      "id": "distrito-anhembi-2026-09-12-bienal-do-livro-sp",
+      "titulo": "Bienal do Livro SP",
+      "data_inicio": "2026-09-12T12:00:00-03:00",
+      "data_fim": null,
+      "fonte_id": "distrito-anhembi",
+      "categoria": "feira",
+      "preco": "pago",
+      "url": "https://www.bienaldolivrosp.com.br/",
+      "descricao": "",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-15T19:01:49.879Z"
     }
   ]
 }
