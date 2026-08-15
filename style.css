@@ -239,15 +239,21 @@ main {
 /* Event card */
 
 .event-card {
-  border: none;
-  border-bottom: 1px solid var(--rule);
-  border-radius: 0;
-  padding: 1.1rem 0;
-  margin-bottom: 0;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cat-hue, var(--border));
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.75rem;
+  background: color-mix(in srgb, var(--fg) 2%, var(--bg));
+  transition: background 150ms ease, border-color 150ms ease;
 }
 
 .event-card:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.event-card:hover {
+  background: color-mix(in srgb, var(--fg) 5%, var(--bg));
 }
 
 .event-card.is-descartado {
@@ -330,6 +336,9 @@ main {
   display: flex;
   gap: 0.2rem;
   align-items: center;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--rule);
 }
 
 .triagem-btn {

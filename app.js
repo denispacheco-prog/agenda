@@ -58,6 +58,7 @@ const state = {
   feedSalvos: [],
   feedFiltroVeiculo: "",
   feedSoSalvos: false,
+  listaSoSalvos: false,
   editingEventoId: null,
   editingFonteId: null,
 };
@@ -243,7 +244,7 @@ function getFilteredEventos() {
     const fonte = state.fontesById.get(e.fonte_id);
     if (state.filtros.bairro && (!fonte || fonte.bairro !== state.filtros.bairro)) return false;
     if (state.filtros.fonteId && e.fonte_id !== state.filtros.fonteId) return false;
-    if (state.viewMode === "salvos") return e.status === "salvo";
+    if (state.listaSoSalvos && state.viewMode === "lista") return e.status === "salvo";
     if (!state.showDescartados && e.status === "descartado") return false;
     return true;
   });
@@ -857,10 +858,16 @@ function updateActiveViewTab() {
   });
   const isFeed = state.viewMode === "feed";
   const isLugares = state.viewMode === "lugares";
+  const isLista = state.viewMode === "lista";
   document.getElementById("filtros-eventos").hidden = isFeed;
   document.getElementById("filtro-fonte").hidden = isLugares;
   document.getElementById("btn-add-evento").hidden = isFeed || isLugares;
   document.getElementById("btn-add-lugar").hidden = !isLugares;
+
+  const listaSalvosToggle = document.getElementById("btn-toggle-salvos");
+  listaSalvosToggle.hidden = !isLista;
+  listaSalvosToggle.classList.toggle("btn-primary", state.listaSoSalvos);
+  listaSalvosToggle.textContent = state.listaSoSalvos ? "mostrando salvos" : "★ salvos";
 
   document.getElementById("feed-sidebar-toggle").hidden = !isFeed;
   const savedToggle = document.getElementById("feed-saved-toggle");
@@ -885,7 +892,7 @@ function render() {
   if (state.viewMode === "calendario") {
     renderCalendario(container, filtered);
   } else {
-    renderLista(container, filtered, state.viewMode === "salvos");
+    renderLista(container, filtered, state.listaSoSalvos);
   }
 }
 
@@ -898,6 +905,10 @@ function setupViewTabs() {
       state.selectedDayKey = null;
       render();
     });
+  });
+  document.getElementById("btn-toggle-salvos").addEventListener("click", () => {
+    state.listaSoSalvos = !state.listaSoSalvos;
+    render();
   });
 }
 
