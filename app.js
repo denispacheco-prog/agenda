@@ -643,6 +643,9 @@ function lugarCardHtml(f) {
   const siteHtml = f.url
     ? `<a class="lugar-site" href="${escapeHtml(f.url)}" target="_blank" rel="noopener">site ↗</a>`
     : "";
+  const instagramHtml = f.instagram
+    ? `<a class="lugar-site" href="${escapeHtml(f.instagram)}" target="_blank" rel="noopener">instagram ↗</a>`
+    : "";
   const count = countEventosFuturos(f.id);
   const contagemLabel = count > 0
     ? `${count} evento${count > 1 ? "s" : ""} futuro${count > 1 ? "s" : ""}`
@@ -656,6 +659,7 @@ function lugarCardHtml(f) {
       <div class="lugar-card-bottom">
         <button type="button" class="lugar-contagem-btn${count > 0 ? " is-active" : ""}" data-fonte-id="${escapeHtml(f.id)}">${contagemLabel}</button>
         ${siteHtml}
+        ${instagramHtml}
       </div>
       <div class="lugar-card-actions">
         <button type="button" class="lugar-editar-btn" data-fonte-id="${escapeHtml(f.id)}">editar</button>
@@ -734,6 +738,7 @@ function abrirFormularioEdicaoLugar(f) {
   document.getElementById("form-lugar-bairro").value = f.bairro || "";
   document.getElementById("form-lugar-subcategoria").value = f.subcategoria || "";
   document.getElementById("form-lugar-url").value = f.url || "";
+  document.getElementById("form-lugar-instagram").value = f.instagram || "";
   document.getElementById("form-lugar-titulo").textContent = "editar lugar";
   document.getElementById("form-lugar-submit-btn").textContent = "salvar alterações";
   panel.hidden = false;
@@ -794,6 +799,7 @@ function setupFormLugar() {
     const bairro = document.getElementById("form-lugar-bairro").value.trim();
     const subcategoria = document.getElementById("form-lugar-subcategoria").value.trim();
     const url = document.getElementById("form-lugar-url").value.trim();
+    const instagram = document.getElementById("form-lugar-instagram").value.trim();
 
     if (!nome || !categoria) return;
 
@@ -806,6 +812,7 @@ function setupFormLugar() {
         bairro: bairro || null,
         subcategoria: subcategoria || null,
         url: url || null,
+        instagram: instagram || null,
       };
       try {
         state.fontes = await API.updateFonteGithub(fonteAtualizada);
@@ -823,6 +830,7 @@ function setupFormLugar() {
         latitude: null,
         longitude: null,
         url: url || null,
+        instagram: instagram || null,
         tipo_coleta: "manual",
         feed_url: null,
         subcategoria: subcategoria || null,
