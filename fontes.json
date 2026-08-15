@@ -1065,6 +1065,19 @@
       "tipo_coleta": "manual",
       "feed_url": null,
       "subcategoria": null
+    },
+    {
+      "id": "distrito-anhembi",
+      "nome": "Distrito Anhembi",
+      "categoria": "feira",
+      "bairro": "Santana",
+      "latitude": null,
+      "longitude": null,
+      "url": "https://distritoanhembi.com.br/",
+      "instagram": null,
+      "tipo_coleta": "manual",
+      "feed_url": null,
+      "subcategoria": null
     }
   ]
 }
