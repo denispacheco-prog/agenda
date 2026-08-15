@@ -293,8 +293,8 @@
       "bairro": "Consolação",
       "latitude": null,
       "longitude": null,
-      "url": "https://www.instagram.com/_casaabe/",
-      "instagram": null,
+      "url": null,
+      "instagram": "https://www.instagram.com/_casaabe/",
       "tipo_coleta": "manual",
       "feed_url": null,
       "subcategoria": null
