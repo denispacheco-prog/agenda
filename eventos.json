@@ -26,6 +26,20 @@
       "status": "novo",
       "origem": "manual",
       "criado_em": "2026-08-14T21:51:48.047Z"
+    },
+    {
+      "id": "cine-belas-artes-2026-08-30-belas-sonoriza-suspiria",
+      "titulo": "Belas Sonoriza Suspiria",
+      "data_inicio": "2026-08-30T17:00:00-03:00",
+      "data_fim": null,
+      "fonte_id": "cine-belas-artes",
+      "categoria": "cinema",
+      "preco": "pago",
+      "url": "https://www.cinebelasartes.com.br/programacao/belas-sonoriza-suspiria/",
+      "descricao": "Ingressos: R$ 80 (inteira) e R$ 40 (meia-entrada)",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-15T00:27:02.873Z"
     }
   ]
 }
