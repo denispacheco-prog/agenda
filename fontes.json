@@ -1078,6 +1078,19 @@
       "tipo_coleta": "manual",
       "feed_url": null,
       "subcategoria": null
+    },
+    {
+      "id": "cinema-do-ims",
+      "nome": "Cinema do IMS",
+      "categoria": "cinema",
+      "bairro": "Bela Vista",
+      "latitude": null,
+      "longitude": null,
+      "url": "https://ims.com.br/cinema/",
+      "instagram": "https://www.instagram.com/ims.cinema/",
+      "tipo_coleta": "manual",
+      "feed_url": null,
+      "subcategoria": null
     }
   ]
 }
