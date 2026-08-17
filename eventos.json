@@ -83,6 +83,20 @@
       "status": "novo",
       "origem": "manual",
       "criado_em": "2026-08-16T21:09:25.450Z"
+    },
+    {
+      "id": "museu-da-imagem-e-do-som-2026-09-17-curso-historia-do-cinema-mundial",
+      "titulo": "Curso \"História do Cinema Mundial\"",
+      "data_inicio": "2026-09-17T18:00:00-03:00",
+      "data_fim": null,
+      "fonte_id": "museu-da-imagem-e-do-som",
+      "categoria": "museu",
+      "preco": "pago",
+      "url": "https://mis-sp.org.br/evento/historia-do-cinema-mundial-2/",
+      "descricao": "R$ 250 (Fazer inscrição)",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-17T13:14:13.206Z"
     }
   ]
 }
