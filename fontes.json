@@ -1104,6 +1104,19 @@
       "tipo_coleta": "manual",
       "feed_url": null,
       "subcategoria": null
+    },
+    {
+      "id": "bunkyo-museu-da-imigracao-japonesa",
+      "nome": "Bunkyo + Museu da Imigração Japonesa",
+      "categoria": "museu",
+      "bairro": "Liberdade",
+      "latitude": null,
+      "longitude": null,
+      "url": "https://bunkyo.org.br/",
+      "instagram": "https://www.instagram.com/bunkyodigital/",
+      "tipo_coleta": "manual",
+      "feed_url": null,
+      "subcategoria": null
     }
   ]
 }
