@@ -1091,6 +1091,19 @@
       "tipo_coleta": "manual",
       "feed_url": null,
       "subcategoria": null
+    },
+    {
+      "id": "cinesystem-belas-artes-frei-caneca",
+      "nome": "Cinesystem Belas Artes Frei Caneca",
+      "categoria": "cinema",
+      "bairro": "Bela Vista",
+      "latitude": null,
+      "longitude": null,
+      "url": null,
+      "instagram": "https://www.instagram.com/freicanecabelasartes/",
+      "tipo_coleta": "manual",
+      "feed_url": null,
+      "subcategoria": null
     }
   ]
 }
