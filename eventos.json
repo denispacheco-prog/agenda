@@ -83,6 +83,20 @@
       "status": "novo",
       "origem": "manual",
       "criado_em": "2026-08-17T13:14:13.206Z"
+    },
+    {
+      "id": "bunkyo-museu-da-imigracao-japonesa-2026-08-29-bunka-matsuri",
+      "titulo": "Bunka Matsuri",
+      "data_inicio": "2026-08-29T10:00:00-03:00",
+      "data_fim": "2026-08-30T18:00:00-03:00",
+      "fonte_id": "bunkyo-museu-da-imigracao-japonesa",
+      "categoria": "museu",
+      "preco": "gratis",
+      "url": "https://bunkamatsuri.org.br/",
+      "descricao": "",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-27T15:34:24.166Z"
     }
   ]
 }
