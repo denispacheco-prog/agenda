@@ -26,6 +26,7 @@ const STATUS_KEY = "agenda:status";
 const MANUAL_EVENTOS_KEY = "agenda:eventosManuais";
 const EVENTO_EDITS_KEY = "agenda:eventoEdits";
 const FEED_SALVOS_KEY = "agenda:feedSalvos";
+const FEED_LAYOUT_KEY = "agenda:feedLayout";
 
 const state = {
   categorias: [],
@@ -44,7 +45,9 @@ const state = {
   feedSalvos: [],
   feedFiltroVeiculo: "",
   feedSoSalvos: false,
+  feedLayout: localStorage.getItem(FEED_LAYOUT_KEY) || "grid",
   listaSoSalvos: false,
+  showPassados: false,
   editingEventoId: null,
   editingFonteId: null,
 };
@@ -161,6 +164,11 @@ function dateKey(d) {
   return `${y}-${m}-${day}`;
 }
 
+function isEventoPassado(ev) {
+  const referencia = ev.data_fim || ev.data_inicio;
+  return new Date(referencia) < new Date();
+}
+
 function dayLabel(date) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -241,7 +249,12 @@ function getFilteredEventos() {
     const fonte = state.fontesById.get(e.fonte_id);
     if (state.filtros.bairro && (!fonte || fonte.bairro !== state.filtros.bairro)) return false;
     if (state.filtros.fonteId && e.fonte_id !== state.filtros.fonteId) return false;
-    if (state.listaSoSalvos && state.viewMode === "lista") return e.status === "salvo";
+    if (state.viewMode === "lista") {
+      if (state.listaSoSalvos && e.status !== "salvo") return false;
+      if (!state.showDescartados && e.status === "descartado") return false;
+      if (!state.showPassados && isEventoPassado(e)) return false;
+      return true;
+    }
     if (!state.showDescartados && e.status === "descartado") return false;
     return true;
   });
@@ -255,6 +268,19 @@ function countHiddenDescartados() {
     if (state.filtros.bairro && (!fonte || fonte.bairro !== state.filtros.bairro)) return false;
     if (state.filtros.fonteId && e.fonte_id !== state.filtros.fonteId) return false;
     return e.status === "descartado";
+  }).length;
+}
+
+function countHiddenPassados() {
+  if (state.showPassados) return 0;
+  return state.eventos.filter((e) => {
+    if (state.filtros.categoria && e.categoria !== state.filtros.categoria) return false;
+    const fonte = state.fontesById.get(e.fonte_id);
+    if (state.filtros.bairro && (!fonte || fonte.bairro !== state.filtros.bairro)) return false;
+    if (state.filtros.fonteId && e.fonte_id !== state.filtros.fonteId) return false;
+    if (state.listaSoSalvos && e.status !== "salvo") return false;
+    if (!state.showDescartados && e.status === "descartado") return false;
+    return isEventoPassado(e);
   }).length;
 }
 
@@ -344,10 +370,17 @@ function renderLista(container, eventos, isSalvosView) {
   if (!isSalvosView) {
     const hidden = countHiddenDescartados();
     if (hidden > 0 || state.showDescartados) {
-      html += `<button type="button" class="toggle-descartados" id="toggle-descartados">${
+      html += `<button type="button" class="toggle-link" id="toggle-descartados">${
         state.showDescartados ? "ocultar descartados" : `mostrar descartados (${hidden})`
       }</button>`;
     }
+  }
+
+  const hiddenPassados = countHiddenPassados();
+  if (hiddenPassados > 0 || state.showPassados) {
+    html += `<button type="button" class="toggle-link" id="toggle-passados">${
+      state.showPassados ? "ocultar eventos já ocorridos" : `mostrar eventos já ocorridos (${hiddenPassados})`
+    }</button>`;
   }
 
   container.innerHTML = html;
@@ -356,6 +389,14 @@ function renderLista(container, eventos, isSalvosView) {
   if (toggleBtn) {
     toggleBtn.addEventListener("click", () => {
       state.showDescartados = !state.showDescartados;
+      render();
+    });
+  }
+
+  const togglePassadosBtn = document.getElementById("toggle-passados");
+  if (togglePassadosBtn) {
+    togglePassadosBtn.addEventListener("click", () => {
+      state.showPassados = !state.showPassados;
       render();
     });
   }
@@ -517,6 +558,67 @@ function feedItemHtml(item, salvosSet) {
     </article>`;
 }
 
+function feedGridCardHtml(item, salvosSet) {
+  const veiculo = state.veiculosById.get(item.veiculo_id);
+  const hue = hueForVeiculo(item.veiculo_id);
+  const hora = new Date(item.publicado_em).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+  const isSalvo = salvosSet.has(item.id);
+  const resumoHtml = item.resumo ? `<p class="feed-grid-card-summary">${escapeHtml(item.resumo)}</p>` : "";
+
+  return `
+    <article class="feed-grid-card" style="--cat-hue:${hue}">
+      <div class="feed-grid-card-top">
+        <span class="feed-item-source">${escapeHtml(veiculo ? veiculo.nome : item.veiculo_id)}</span>
+        <button type="button" class="feed-save-btn${isSalvo ? " is-saved" : ""}" data-feed-id="${escapeHtml(item.id)}" aria-label="${isSalvo ? "remover dos salvos" : "salvar"}" title="${isSalvo ? "salvo" : "salvar"}">${isSalvo ? "★" : "☆"}</button>
+      </div>
+      <h3 class="feed-grid-card-title"><a href="${escapeHtml(item.link)}" target="_blank" rel="noopener">${escapeHtml(item.titulo)}</a></h3>
+      ${resumoHtml}
+      <div class="feed-grid-card-date">${hora}</div>
+    </article>`;
+}
+
+function renderFeedGridHtml(items, salvosSet) {
+  let html = "";
+  let lastLabel = null;
+  let gridAberto = false;
+  items.forEach((item) => {
+    const label = dayLabel(new Date(item.publicado_em));
+    if (label !== lastLabel) {
+      if (gridAberto) html += `</div>`;
+      html += `<h2 class="stream-date-heading">${label}</h2><div class="feed-grid">`;
+      gridAberto = true;
+      lastLabel = label;
+    }
+    html += feedGridCardHtml(item, salvosSet);
+  });
+  if (gridAberto) html += `</div>`;
+  return html;
+}
+
+function renderFeedStreamHtml(items, salvosSet) {
+  let html = "";
+  let lastLabel = null;
+  items.forEach((item) => {
+    const label = dayLabel(new Date(item.publicado_em));
+    if (label !== lastLabel) {
+      html += `<h2 class="stream-date-heading">${label}</h2>`;
+      lastLabel = label;
+    }
+    html += feedItemHtml(item, salvosSet);
+  });
+  return html;
+}
+
+function updateFeedLayoutToggle() {
+  const btn = document.getElementById("feed-layout-toggle");
+  if (!btn) return;
+  const isGrid = state.feedLayout === "grid";
+  btn.textContent = isGrid ? "☰" : "▦";
+  btn.setAttribute("aria-label", isGrid ? "ver como lista" : "ver como grade");
+  btn.title = isGrid ? "ver como lista" : "ver como grade";
+  btn.setAttribute("aria-pressed", String(isGrid));
+}
+
 function renderFeedSidebar() {
   const list = document.getElementById("feed-sidebar-list");
   if (!list) return;
@@ -568,6 +670,11 @@ function setupFeedSidebar() {
     state.feedSoSalvos = !state.feedSoSalvos;
     render();
   });
+  document.getElementById("feed-layout-toggle").addEventListener("click", () => {
+    state.feedLayout = state.feedLayout === "grid" ? "lista" : "grid";
+    localStorage.setItem(FEED_LAYOUT_KEY, state.feedLayout);
+    render();
+  });
 }
 
 function renderFeed(container) {
@@ -580,16 +687,10 @@ function renderFeed(container) {
   let itemsHtml = "";
   if (filtered.length === 0) {
     itemsHtml = `<p class="empty-state">${state.feedSoSalvos ? "nenhum item salvo ainda." : "nenhum item no feed ainda."}</p>`;
+  } else if (state.feedLayout === "grid") {
+    itemsHtml = renderFeedGridHtml(filtered, salvosSet);
   } else {
-    let lastLabel = null;
-    filtered.forEach((item) => {
-      const label = dayLabel(new Date(item.publicado_em));
-      if (label !== lastLabel) {
-        itemsHtml += `<h2 class="stream-date-heading">${label}</h2>`;
-        lastLabel = label;
-      }
-      itemsHtml += feedItemHtml(item, salvosSet);
-    });
+    itemsHtml = renderFeedStreamHtml(filtered, salvosSet);
   }
 
   let linksHtml = "";
@@ -606,6 +707,7 @@ function renderFeed(container) {
   container.innerHTML = itemsHtml + linksHtml;
 
   renderFeedSidebar();
+  updateFeedLayoutToggle();
 
   container.querySelectorAll(".feed-save-btn[data-feed-id]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -982,6 +1084,7 @@ function updateActiveViewTab() {
   listaSalvosToggle.textContent = state.listaSoSalvos ? "mostrando salvos" : "★ salvos";
 
   document.getElementById("feed-sidebar-toggle").hidden = !isFeed;
+  document.getElementById("feed-layout-toggle").hidden = !isFeed;
   const savedToggle = document.getElementById("feed-saved-toggle");
   savedToggle.hidden = !isFeed;
   savedToggle.classList.toggle("is-active", state.feedSoSalvos);

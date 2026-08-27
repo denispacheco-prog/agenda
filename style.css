@@ -396,7 +396,7 @@ main {
   color: var(--fg);
 }
 
-.toggle-descartados {
+.toggle-link {
   display: block;
   margin: 1rem 0;
   background: none;
@@ -624,6 +624,81 @@ main {
   opacity: 1;
   color: var(--accent);
   animation: star-pop 280ms ease-out;
+}
+
+/* Feed em grade, no espírito do modo mosaico do Reader */
+
+.feed-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  margin: 0 0 2rem;
+}
+
+.feed-grid-card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--cat-hue, var(--border));
+  border-radius: 8px;
+  padding: 0.9rem 1rem;
+  background: color-mix(in srgb, var(--fg) 2%, var(--bg));
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.feed-grid-card:hover {
+  background: color-mix(in srgb, var(--fg) 5%, var(--bg));
+}
+
+.feed-grid-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+
+.feed-grid-card-title {
+  font-family: var(--font-serif);
+  margin: 0 0 0.4rem;
+  font-size: 1rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.feed-grid-card-title a {
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.feed-grid-card-title a:hover {
+  text-decoration: underline;
+}
+
+.feed-grid-card-summary {
+  font-family: var(--font-serif);
+  font-size: 0.82rem;
+  color: var(--fg);
+  opacity: 0.8;
+  margin: 0 0 0.5rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.feed-grid-card-date {
+  margin-top: auto;
+  padding-top: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+  opacity: 0.8;
+}
+
+@media (max-width: 480px) {
+  .feed-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .feed-links-panel {
