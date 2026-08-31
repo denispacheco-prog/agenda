@@ -97,6 +97,20 @@
       "status": "novo",
       "origem": "manual",
       "criado_em": "2026-08-27T15:34:24.166Z"
+    },
+    {
+      "id": "cine-belas-artes-2026-09-27-belas-sonoriza-donnie-darko",
+      "titulo": "Belas Sonoriza - Donnie Darko",
+      "data_inicio": "2026-09-27T14:00:00-03:00",
+      "data_fim": null,
+      "fonte_id": "cine-belas-artes",
+      "categoria": "cinema",
+      "preco": "pago",
+      "url": "https://www.instagram.com/p/DctZ4e-Fp9H/",
+      "descricao": "",
+      "status": "novo",
+      "origem": "manual",
+      "criado_em": "2026-08-31T16:17:04.368Z"
     }
   ]
 }
